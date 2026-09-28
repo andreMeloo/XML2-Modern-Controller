@@ -43,7 +43,14 @@ def main():
     decoded=bytearray()
     for at in range(0,len(rle),6): decoded.extend(rle[at+2:at+6]*int.from_bytes(rle[at:at+2],'little'))
     assert decoded==raw
-    assert atlas.getpixel((0,0))[3]==0 and atlas.getpixel((511,511))[3]==0
+    alpha=atlas.getchannel('A')
+    for i in range(64):
+        x=(i%8)*64; y=(i//8)*64
+        gutters=((x,y,x+64,y+4),(x,y+60,x+64,y+64),
+                 (x,y+4,x+4,y+60),(x+60,y+4,x+64,y+60))
+        assert all(alpha.crop(box).getbbox() is None for box in gutters), f'Bleeding in cell {i}'
+        if i>=len(entries):
+            assert alpha.crop((x,y,x+64,y+64)).getbbox() is None, f'Nonempty unused cell {i}'
     print(f'PASS: {version}; 48 cells; 512x512 RGBA; padding=4; RLE={len(rle)}; SHA256={info["raw_bgra_sha256"]}')
 
 if __name__=='__main__': main()

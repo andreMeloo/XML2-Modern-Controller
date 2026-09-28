@@ -1,3 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-<g fill="#152b3e" stroke="#d2b477" stroke-width="3"><rect x="5" y="9" width="54" height="46" rx="9"/></g><g transform="translate(21.55 35) scale(1.1)" fill="none" stroke="#fff2d3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline transform="translate(0 0)" points="0,12 0,0 5,0 8,2 8,4 5,6 0,6"/><polyline transform="translate(0 0)" points="4,6 8,12"/><polyline transform="translate(11 0)" points="0,0 8,0 4,6 8,8 8,10 6,12 0,12"/></g><path transform="rotate(180 32 24)" d="M32 14L23 24H29V32H35V24H41Z" fill="#fff2d3"/>
+<g fill="#152b3e" stroke="#d2b477" stroke-width="3"><rect x="5" y="9" width="54" height="46" rx="9"/></g>
+<g><path d="M32 49 L19 35 H27 V19 H37 V35 H45 Z" fill="#fff2d3"/>
+    <circle cx="44" cy="39" r="9.5" fill="none" stroke="#fff2d3" stroke-width="2.4"/>
+    <circle cx="44" cy="39" r="2.8" fill="#fff2d3"/>
+    <g transform="translate(41.666667 18.5) scale(0.583333333)" fill="none" stroke="#fff2d3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="0,12 0,0 5,0 8,2 8,4 5,6 0,6"/><polyline points="4,6 8,12"/></g>
+    </g>
 </svg>

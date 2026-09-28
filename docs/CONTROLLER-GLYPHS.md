@@ -26,7 +26,7 @@ the original text position and wrapping are retained. Visual validation of this
 gap and the enabled tutorial variant is pending. Remapping, forced PlayStation style, resolution scaling and full
 input regression with glyphs also require human validation.
 
-Prepared corrective DLL SHA-256:
+Earlier corrective DLL SHA-256:
 `BCB77B8FBFDF0A64216D3A9054AA19DF6261E1C6822082E7C5FAF306BE71778F`.
 Apply and full-tree Verify passed with exactly two Dev differences (`DINPUT.dll`
 and `true-analog.ini`). Startup armed the movement and prompt hooks, validated
@@ -105,8 +105,8 @@ text because no physical Sony controller has been validated.
 
 ## Owned art and rendering
 
-48 original SVGs (24 per style), authored with geometric shapes and our own
-monoline letter paths; no downloaded glyph pack, copied console image or logo.
+48 project SVGs (24 per style), with geometric shapes and our own
+monoline letter paths; no copied console image or logo.
 Xbox: A/B/X/Y, LB/RB, LT/RT, LS/RS, four D-pad arrows, Menu/View, eight stick
 directions. PlayStation: Cross/Circle/Square/Triangle, L1/R1, L2/R2, L3/R3,
 D-pad arrows, Options/Create and eight stick directions. All are MIT licensed.
@@ -114,9 +114,32 @@ D-pad arrows, Options/Create and eight stick directions. All are MIT licensed.
 Official resvg **0.47.0** rasterizes 64-unit SVGs to 56x56 RGBA; Pillow packs an
 8-column **512x512** lossless atlas, 64px cells, **4px padding**. `atlas.json`
 records names, cell positions and UVs. BGRA RLE is embedded in the DLL. Repeated
-builds gave identical decoded hash
-`557ab06e4d247f9ea3accc6371fb41eb5a7dc75e0983cf961855658604ee6866`.
+builds of the refined art gave identical PNG, metadata and embedded header, with decoded hash
+`ae22bd3b54b7ed525c9f65739025a72a6696c2ddfb952a9129fa2be88b6ef014`.
 The runtime creates one managed A8R8G8B8 texture; no SVG/INI/file reads per frame.
+
+Art integration: the user's refined input package replaces Start/Back, four
+D-pad directions and eight stick directions in each family (28 SVGs).
+All 48 names, IDs, source paths and order remain unchanged. Sixteen L/R text
+labels were converted to our own vector strokes at the supplied position,
+removing the package's Arial dependency. PNGs and atlas are regenerated from
+these editable sources; input rasters are not used. Every cell's four-pixel
+gutters and all unused cells are checked for transparency. The initial sketch
+generator now refuses to overwrite edited SVGs. No runtime or input changes
+are part of this art integration. New art still requires in-game visual review.
+
+Refined build DLL SHA-256:
+`C7B5FF7964673A74B1F5911EABE7B7E517C64D10657328B955534D4CB0BEA2AD`.
+Prompt/controller/unsupported-build fixtures passed. The new DLL ran in Dev
+with DynamicPrompts, ControllerGlyphs and PromptTrace OFF, retaining the input
+core. The user confirmed no regression in Advanced mouse/keyboard behavior,
+other controls, diagonal/circle/partial movement and unplug/reconnect, then
+closed the game. Advanced controller navigation/remapping remains unavailable,
+as in the preceding OFF comparison. The ON preparation passed full-tree Verify
+with exactly two Dev additions, armed the prompt/movement hooks and loaded the
+512x512 managed atlas. It does not constitute visual approval. Vanilla's 12,529
+files and source's 12,527 files matched baseline hashes; all three EXE hashes
+and the stable v0.1.0 ZIP remained unchanged.
 
 Retail metrics at `008161F8 + font*1C18 + 18 + code*1C` provide cap height and
 baseline. Only otherwise empty cells get runtime metrics; original font pixels

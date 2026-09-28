@@ -62,6 +62,13 @@ def svg(style, name):
     return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">\n'+''.join(body)+'\n</svg>\n'
 
 def main():
+    # This script preserves the initial sketches as an authoring reference.
+    # Edited/refined SVGs are canonical inputs, never overwritten by sketches.
+    for style in ('xbox','playstation'):
+        for name in NAMES:
+            source=ROOT/'assets/glyphs'/style/(name+'.svg')
+            if source.exists() and source.read_text(encoding='utf-8')!=svg(style,name):
+                raise RuntimeError('Refined SVGs are editable source. Use build-glyphs.py to regenerate the atlas; this initial sketch generator will not overwrite them.')
     entries=[]
     for style in ('xbox','playstation'):
         folder=ROOT/'assets/glyphs'/style
