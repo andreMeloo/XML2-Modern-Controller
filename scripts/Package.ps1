@@ -15,7 +15,7 @@ if ($Source) {
     foreach ($relative in @('VERSION','README.md','CHANGELOG.md','CONTRIBUTING.md','LICENSE','.gitignore','build-controller.ps1','build.ps1')) {
         $files[$relative] = Join-Path $root $relative
     }
-    $allow = @{src=@('.c','.S','.def'); include=@('.h'); assets=@('.svg','.json'); scripts=@('.ps1','.py'); tests=@('.c','.S','.ps1'); docs=@('.md')}
+    $allow = @{src=@('.c','.S','.def'); include=@('.h'); assets=@('.svg','.json'); scripts=@('.ps1','.py'); tests=@('.c','.S','.ps1'); docs=@('.md'); '.github'=@('.md')}
     foreach ($directory in $allow.Keys | Sort-Object) {
         foreach ($file in Get-ChildItem -LiteralPath (Join-Path $root $directory) -File -Recurse | Sort-Object FullName) {
             if ($file.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Symlink/reparse source is forbidden.' }
@@ -35,7 +35,7 @@ if ($Source) {
     $metadata = Get-Content -LiteralPath (Join-Path $root 'build/modern-controller/build-info.json') -Raw | ConvertFrom-Json
     if ($metadata.version -cne $version -or $metadata.name -cne 'XML2 Modern Controller' -or
         (Get-FileHash -LiteralPath $files['DINPUT.dll'] -Algorithm SHA256).Hash -ine $metadata.dll_sha256 -or
-        $metadata.atlas_bgra_sha256 -cne 'ae22bd3b54b7ed525c9f65739025a72a6696c2ddfb952a9129fa2be88b6ef014') {
+        $metadata.atlas_bgra_sha256 -cne '6a11ef30dc9717b06d23ced009434ba4ee74ad35afc5a35ef37dc0e318d78824') {
         throw 'Build metadata, version, DLL or approved atlas mismatch.'
     }
     & (Join-Path $root 'scripts/Inspect-Proxy.ps1') -Path $files['DINPUT.dll'] | Out-Null

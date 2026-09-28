@@ -29,7 +29,7 @@ if ($metadata.version -cne $version -or $metadata.name -cne 'XML2 Modern Control
     (Get-FileHash -LiteralPath $dll -Algorithm SHA256).Hash -ine $metadata.dll_sha256 -or
     -not $binary.Contains("XML2 Modern Controller v$version")) { throw 'Release identity mismatch.' }
 $ini = Get-Content -LiteralPath (Join-Path $root 'config/modern-controller.ini') -Raw
-foreach ($line in @('TrueAnalogMovement=1','Deadzone=0.15','PreserveMagnitude=1','DebugInput=0','HotPlug=1','DynamicPrompts=1','ControllerGlyphs=1','AdvancedController=1','ControllerType=Auto','GlyphStyle=Auto')) {
+foreach ($line in @('TrueAnalogMovement=1','Deadzone=0.15','PreserveMagnitude=1','DebugInput=0','HotPlug=1','DynamicPrompts=1','ControllerGlyphs=1','AdvancedController=1','ControllerType=Auto','GlyphStyle=Auto','AdvancedTrace=0','PromptTrace=0','ControllerTrace=0','RestoreConsoleDefaults=0')) {
     if ($ini -notmatch ('(?m)^'+[regex]::Escape($line)+'\s*$')) { throw "Release default missing: $line" }
 }
 if ($ini -match '(?m)^(AdvancedTrace|PromptTrace|ControllerTrace|DebugInput)=1\s*$') { throw 'Release diagnostics enabled.' }

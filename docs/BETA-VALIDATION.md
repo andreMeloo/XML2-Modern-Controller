@@ -1,88 +1,59 @@
-# Beta validation: 0.5.0-beta.1
+# Public beta validation: 0.5.0-beta.1
 
-Scope is frozen at the accepted Advanced mouse-edit behavior from `bd22d0a`.
-No new gameplay, renderer, exclusivity, binding-editor or art features are added.
-Changes are identity/version, release defaults, diagnostic gating, documentation
-and deterministic standalone packaging. Historical True Analog v0.1.0 ZIP is preserved.
+Functional/visual freeze: **511082b**. The user approved the final full glyph
+set and help coverage for publication. Release preparation changes documentation,
+explicit distribution defaults and packaging/audit gates only; runtime source
+and all 48 approved SVGs remain unchanged.
 
-## Evidence
+## Gameplay and visual evidence
 
-- Previous validated core: P1 angles, circle, partial stick, radial deadzone,
-  keyboard, mouse, camera, combat, character changes, menus and save/load.
-- Previous Advanced round: directions, A/B, mouse/Esc, reconnect and diagonal
-  were reported working. Dialogue images were explicitly confirmed; Advanced
-  text fallback is intentional and local.
-- Final beta technical tests pass: controller COM ABI/model/config, prompt model,
-  render/tutorial ABI, Advanced ABI/commands, unsupported-build refusal and release
-  identity/defaults/logger. The actual logger emitted zero writes for 10,000
-  diagnostic events with trace off; support/refusal logging remained available.
-- Clean source build and working-tree build produce identical stripped x86 DLLs:
-  `340D47F3EEF8D28995CFA7D2F88A85B76F0D8BFADC452D90F65EFF85A2A633E6`.
-  Approved decoded atlas hash remains
-  `ae22bd3b54b7ed525c9f65739025a72a6696c2ddfb952a9129fa2be88b6ef014`.
-  Removing debug symbols avoids path-dependent linker IDs; runtime behavior is unchanged.
-- Binary ZIP round-trip/content audit passes with exactly four owned files;
-  two package runs produced the same ZIP hash. Original v0.1.0 ZIP remains intact.
-- Exact ZIP files installed in baseline-matching marked Dev. Direct launch with
-  no log override confirmed beta version, supported hash, analog/Advanced/prompt
-  hooks, Generic controller at startup, embedded atlas, and normal local support log.
-- A fresh extraction of the source ZIP also rebuilt the identical DLL and binary
-  ZIP without parent-project files. Historical tests are not relabeled as beta tests.
-- Final beta session 1: user confirmed the complete connected-startup route:
-  requested angles/circle, partial speed/deadzone, keyboard/mouse/controller,
-  prompts, Advanced A/B and original mouse edit, combat/powers/camera, character
-  changes, menus and save/load. Direct Dev process exited with code 0.
-- Support log after this session: 36 lines / 3,469 bytes, with no enumeration or
-  input trace spam. Advanced fallback and actual glyph submissions were observed.
-- Standalone uninstall passed: removing the four ownership-verified package files
-  and generated support log returned Dev to the complete SHA-256 baseline.
-- Final beta session 2 passed by user confirmation: startup without a pad, late
-  connection, disconnect/reconnect during Advanced navigation without stuck input,
-  PlayStation Cross presentation override in dialogue and return to keyboard.
-  The process exited with code 0. This validates presentation on the available
-  Generic controller, not physical PlayStation hardware.
-- Final local installation restores the exact public ZIP defaults (GlyphStyle=Auto,
-  traces off). Game EXE/assets and Vanilla/source installations are not modified.
-- Removed the obsolete generated DINPUT.pdb; build caches/historical artifacts
-  are excluded from source packaging, rather than deleting useful parent history.
+- User-confirmed P1 360° directions/circle, partial-stick speed and radial deadzone.
+- Keyboard/mouse/controller input, camera, combat/powers, character changes,
+  menus and save/load passed the preceding regression sessions.
+- Startup connected, startup without a pad, late connection, disconnect/reconnect
+  and no stuck input were confirmed by the user.
+- Advanced directions, South/A Accept, East/B Back and original mouse/keyboard
+  binding editing passed. Advanced readable fallback is intentional and local.
+- Xbox/Generic glyph presentation and PlayStation style override passed; the final
+  art/help revision was subsequently accepted by the user at 511082b.
+- No physical Sony or complete P2–P4 support claim is made.
 
-## Short final physical route
+## Technical release gates
 
-Session 1, controller connected before launch: confirm normal startup; test
-0/30/45/60/90/135 degrees, a circle, partial stick and center/deadzone. Switch
-keyboard/mouse/controller freely. Check dialogue keyboard -> glyph -> keyboard,
-Advanced directions/A/B, mouse-selected capture/cancel, and glyphs after leaving.
-Check attacks, powers, camera, character change, menus and save/load.
+The existing suite covers COM/x86 calling conventions, core identity/ownership,
+custom-binding protection, fresh/explicit presets, actual analog config reader,
+48 glyph lookups/styles, help normalization, tutorial ABI, rendering/state restore,
+Advanced adapter, unknown-build refusal and quiet diagnostic defaults. It does
+not substitute for the user-confirmed gameplay tests above.
 
-Session 2, controller disconnected before launch: start with keyboard, connect
-and wait up to five seconds; enter Advanced, disconnect during navigation,
-reconnect, and confirm no stuck input. Return to gameplay and check movement/buttons.
+Release preparation passed the five existing suites: Test-Controller,
+Test-Prompts, Test-Advanced, Test-UnknownBuild and Test-Release. The actual config
+reader accepts the public INI; 10,000 diagnostic events stay quiet with traces
+OFF. Runtime/header/SVG/build sources match the freeze commit.
 
-PlayStation presentation is checked with GlyphStyle override; physical Sony HID
-and P2-P4 remain unvalidated. Default Generic presentation is Xbox.
+Standalone clean builds, including fresh source-ZIP extractions, produced the
+same stripped PE32 x86 DLL. All 51 generated PNG/atlas/metadata/header files
+repeated exactly, and both ZIPs reproduced byte for byte.
+The approved decoded BGRA atlas SHA-256 is
+`6a11ef30dc9717b06d23ced009434ba4ee74ad35afc5a35ef37dc0e318d78824`.
+Published binary/archive checksums are generated after final packaging in
+SHA256SUMS.txt; earlier candidate hashes are obsolete.
 
-## Standalone install/uninstall
+Content audits reject personal paths, proprietary files, caches and generated
+outputs from the source package. Binary ZIP has exactly DINPUT.dll,
+true-analog.ini, README.md and LICENSE under its version directory.
 
-Install only the four files from the binary ZIP in a clean marked Dev game,
-with game files first matching the verified baseline. Start the game directly,
-without a source checkout or Codex launcher dependency. The normal support log
-is `true-analog.log` beside the DLL. Close the game, remove only mod-owned files
-and its generated log, verify the baseline, then reinstall the exact ZIP.
-Machine-specific setup/validation lives in the parent project's ignored work/config,
-not in this portable source project.
+## Standalone initialization and rollback
 
-## Performance and release limits
+Only the release DLL/INI were installed into the marked development copy after
+it matched baseline. XMen2.exe launched directly without a project log override.
+The adjacent log confirmed the beta identity, supported EXE, movement hook at
+0061A4FE, prompt/Advanced/core hooks and the 512x512 managed atlas with 48 cells.
+The game responded and closed normally with exit code 0. Both mod files and the
+generated log were removed; the entire development copy returned to baseline.
+Read-only comparisons also confirmed the original and baseline installations
+unchanged. This startup check did not reopen visual/gameplay regression.
 
-Signature scans run at initialization, not each frame. The approved atlas is
-embedded and uploaded once at runtime; it is not regenerated there. Glyph lookup
-uses cached cells/UVs. Device discovery remains on the existing notification/5-second
-worker; refresh consumes its cached inventory on changes. The original Advanced
-manager may enumerate on its own menu timer; no additional per-frame Windows
-enumeration is introduced. Detailed lifecycle logging now requires ControllerTrace=1;
-AdvancedTrace/PromptTrace and input sampling are off. No new performance benchmark
-is claimed.
-
-One EXE hash is supported. P1 is the main validated path. The final requested
-physical regressions passed; native PlayStation hardware and P2-P4 remain beta
-limitations. No remote, push, release, forum post or fabricated screenshot is
-created. Real publication screenshots remain for the user to supply.
+Historical XML2 True Analog v0.1.0 ZIP remains unchanged. No remote, push,
+publication, fabricated screenshot or new functional feature is part of preparation.
+Real publication screenshots remain for the user to supply separately.

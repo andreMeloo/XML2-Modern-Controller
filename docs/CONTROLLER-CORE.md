@@ -58,7 +58,7 @@ Build with `./build-controller.ps1 -ZigPath <zig>` and use
 `HotPlug=0` disables the refresh. With `ControllerTrace=0` as well, the new
 DirectInput observer is not installed. Changes take effect at the next launch.
 Closing the game and removing this proxy/INI restores the original executable
-behavior. In the Remaster workspace, use `Manage-AnalogProxy.ps1 -Action Revert`.
+behavior. Remove its generated support log as well.
 
 Player1–Player4 each have ControllerIndex, ControllerType, Preset and
 RestoreConsoleDefaults. Index `-1` disables automatic assignment. The default
@@ -76,10 +76,10 @@ working and menu binding sets using the original setter. Existing valid pad
 customizations and alternate keyboard/mouse bindings are preserved. Setting
 RestoreConsoleDefaults=1 explicitly requests the preset at the next launch.
 
-Focused manual check: close Dev and explicitly set Player1
+Focused manual check: close the game and explicitly set Player1
 `RestoreConsoleDefaults=1` in its adjacent `true-analog.ini` to opt into replacing
-pad bindings with ConsoleDefault. Launch Dev; check RB health, LB energy and LT
-Call Allies. Close Dev and remove that key (or set it to 0) before making custom
+pad bindings with ConsoleDefault. Launch the game; check RB health, LB energy and LT
+Call Allies. Close the game and remove that key (or set it to 0) before making custom
 bindings. Leave the key disabled to test the help fix with existing bindings.
 
 ## Evidence and limits

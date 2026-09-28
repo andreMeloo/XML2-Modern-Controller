@@ -18,12 +18,15 @@ The Advanced auxiliary DirectInput manager is refreshed on entry/inventory chang
 
 ## Glyphs
 
-Runtime writer `006A4C4C` uses a different text layout from the inline renderer. Incompatible text runs use local readable fallback; renderer stayed active (`glyph_active=1`) and the user confirmed glyphs returned in gameplay. Advanced binding cells derive controller names from real binding codes and the configured Auto/Xbox/PlayStation style; keyboard labels remain original. No new sprites or UI were added. Entering Advanced does not reset LastInputSource. Approved atlas decoded SHA-256 is unchanged: `ae22bd3b54b7ed525c9f65739025a72a6696c2ddfb952a9129fa2be88b6ef014`.
+Runtime writer `006A4C4C` uses a different text layout from the inline renderer. Incompatible text runs use local readable fallback; renderer stayed active (`glyph_active=1`) and the user confirmed glyphs returned in gameplay. Advanced binding cells derive controller names from real binding codes and the configured Auto/Xbox/PlayStation style; keyboard labels remain original. No new sprites or UI were added. Entering Advanced does not reset LastInputSource. The final approved atlas is recorded in BETA-VALIDATION.md; the adapter behavior is unchanged.
 
-## Validation and limits
+## Historical adapter validation and limits
+
+Later beta sessions confirmed the PlayStation style override; physical Sony
+hardware remains unvalidated. See BETA-VALIDATION.md for current release evidence.
 
 Owned fixtures verify all six hook calling conventions, object/arguments/returns/ESP, Accept/Back edges, neutral entry, native directions/modal retention, foreign/disconnected pad refusal, and absence of capture mutation. Controller, prompt/render and unsupported-build fixtures pass. Final runtime confirms all six hooks armed, native direction focus, South reaching the original Exit callback, auxiliary refresh, preserved controller source and active glyph renderer; Dev exited with code 0. Only DLL/INI differ from baseline and EXE is unchanged. The user reported the simplified direction/A/B, mouse/Esc, reconnect and diagonal route worked. A follow-up explicitly confirmed images still appear in dialogues and text appears only in Advanced, consistent with local fallback. PlayStation override loaded in this session and dialogue images were confirmed, but exact Cross/Circle appearance and PlayStation hardware were not independently verified. Final local configuration restores Auto and disables AdvancedTrace/PromptTrace. Earlier gameplay/save-load regression results remain from the preceding validated core, rather than a new exhaustive test in this session.
 
 Only the supported PC build and assigned P1 controller are targeted. Navigation follows the original menu graph; bindings are selected with the mouse. Advanced currently uses text fallback, while compatible dialogue/gameplay paths retain inline glyphs.
 
-Disable only the adapter with `General/AdvancedController=0`. Full managed rollback, game closed: `scripts/input/Manage-AnalogProxy.ps1 -Action Revert -WhatIf`, then repeat without `-WhatIf`. Dev changes are the DLL and INI only; the EXE and baseline installations remain unchanged.
+Disable only the adapter with `General/AdvancedController=0`. Full standalone rollback, game closed: remove the mod DLL, INI and generated support log. The EXE and game assets remain unchanged.

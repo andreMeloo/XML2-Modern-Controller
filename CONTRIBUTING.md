@@ -1,13 +1,16 @@
 # Contributing
 
-Build XML2 Modern Controller with `build-controller.ps1` and the pinned toolchain
-in README. Run the owned tests before submitting changes. `build.ps1` retains
-the legacy True Analog build for historical comparison.
+Use the pinned Windows toolchain and exact build/test commands in [README](README.md).
+The runtime target is PE32 **x86**, even on a 64-bit Windows host. Run the existing
+Controller, Prompts, Advanced, UnknownBuild and Release test scripts before a patch.
+No proprietary game installation is required for those fixtures.
 
-Keep the beta scope fixed. Add a verified profile and gameplay evidence before
-supporting another executable. Preserve original keyboard/mouse paths, mouse
-binding selection, and local Advanced text fallback. Do not add exclusive input
-selection or controller binding editing during stabilization.
+Keep changes small and verifiable. The beta freezes functional/visual behavior
+at `511082b`; publication edits must not change gameplay or redraw glyphs.
+Preserve hash/signature/layout guards, unknown-build refusal, keyboard/mouse
+behavior, custom bindings and local textual fallback. Additional executable
+support needs a verified profile and actual gameplay evidence.
 
-Never submit game files, dumps, extracted textures, saves, local machine paths or
-personal logs. Original source/SVGs are MIT licensed; game assets are not included.
+Never submit game executables/DLLs, dumps, extracted assets, saves, local machine
+configuration or personal logs. Original project source/SVGs are MIT licensed;
+the game is not included. Build output, caches and installed tools stay ignored.

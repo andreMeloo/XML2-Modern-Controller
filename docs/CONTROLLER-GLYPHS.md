@@ -1,3 +1,11 @@
+# Current public beta status
+
+The final full 48-glyph artwork and help coverage at functional/visual freeze
+511082b were approved by the user for publication. PlayStation style was
+validated through override; physical Sony hardware is not fully validated.
+Earlier pending checks below describe historical development sessions, not
+remaining release gates. See BETA-VALIDATION.md for consolidated evidence.
+
 # Dynamic prompts and original glyphs (development)
 
 ## Evidence and status
@@ -235,7 +243,7 @@ connected D-pad arrow masks, and repeatable derived-file hashes. Renderer
 fixtures verify exact shared position/UV/color edges of the two sprite triangles;
 no renderer change is required by the observed geometry. Visual review at 56px
 and 28px shows separated stick arrows and continuous D-pad arrows. In-game
-seam/clipping confirmation remains a focused user check in Dev.
+visual legibility, orientation and positioning were accepted at the final freeze.
 
 Automated gates: `Test-Prompts.ps1` covers logical mappings, styles, custom live
 rows, unknown bindings, player isolation, noise/debounce, unplug/reconnect,
@@ -252,15 +260,9 @@ orientation, baseline, gap, clipping, transparency and low/720p/1080p modes if
 available. Retest all ten requested stick angles, circle, partial speed,
 deadzone, camera, attacks/powers, switching, menus, save/load and hot-plug/reconnect.
 
-Managed install/rollback: `Manage-AnalogProxy.ps1` validates distinct marked
-paths, verifies the Vanilla manifest, requires closed Dev, logs each operation,
-and compares the complete tree. Run Revert/Apply with `-WhatIf` before writing;
-Build uses `-ControllerCore`. Only `DINPUT.dll` and `true-analog.ini` may differ.
-Launch through `Launch-Dev.ps1` so diagnostics remain outside the game tree.
-For managed Dev configuration changes, close the game and Revert first, edit
-`work/input/true-analog.ini`, then Build/Apply again. Editing the installed INI
-directly would invalidate the manager's ownership hash. Ordinary standalone
-installs may edit their local INI before restarting.
+Standalone install/rollback: with the game closed, install the release DLL
+and INI beside XMen2.exe. To uninstall, remove those files and the generated
+true-analog.log. No parent workspace or managed installation scripts are needed.
 
 References: independent implementation after reading the MIT
 [xmen2 text investigation](https://github.com/SomeoneIsWorking/xmen2/blob/cf0def5efd076e18f6333db67916bfdee336729b/docs/RE/text.md)

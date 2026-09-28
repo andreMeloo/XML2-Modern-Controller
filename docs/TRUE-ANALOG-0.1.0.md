@@ -96,12 +96,12 @@ also needs Python with Pillow and the official resvg 0.47.0 CLI:
 ```
 
 These tools are build dependencies; they are not needed by the runtime DLL.
-The atlas is embedded in the DLL. See [glyph notes](docs/CONTROLLER-GLYPHS.md)
+The atlas is embedded in the DLL. See [glyph notes](CONTROLLER-GLYPHS.md)
 for the retail pipeline, configuration, visual validation and known limits. See
-[controller core notes](docs/CONTROLLER-CORE.md) for current validation and
+[controller core notes](CONTROLLER-CORE.md) for current validation and
 limits. The v0.1.0 build and release package remain separate.
 
 The optional build also includes a contextual Advanced editor adapter, enabled
-with `General/AdvancedController=1`. See [Advanced controls](docs/ADVANCED-CONTROLLER.md)
+with `General/AdvancedController=1`. See [Advanced controls](ADVANCED-CONTROLLER.md)
 for native navigation, Accept/Back, mouse-selected binding edits, local text
 fallback and validation.
