@@ -80,3 +80,11 @@ Reverse-engineering reference and technical credit:
 [`SomeoneIsWorking/xmen2` at cf0def5](https://github.com/SomeoneIsWorking/xmen2/tree/cf0def5efd076e18f6333db67916bfdee336729b).
 Its code is MIT licensed. XML2 True Analog uses an independent implementation;
 no xmen2 source or game data was copied into this mod.
+
+## Optional controller core in development
+
+`build-controller.ps1` builds XML2 Modern Controller separately, including
+runtime hot-plug, device identity, player reservations and logical console
+presets. Use `config/modern-controller.ini` for that build. See
+[controller core notes](docs/CONTROLLER-CORE.md) for current validation and
+limits. The v0.1.0 build and release package remain separate.

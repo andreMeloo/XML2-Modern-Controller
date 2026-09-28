@@ -1,0 +1,38 @@
+param([string]$ZigPath)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+$root = $PSScriptRoot
+if (-not $ZigPath) {
+    if ($env:ZIG_EXE) { $ZigPath = $env:ZIG_EXE }
+    else {
+        $command = Get-Command zig -ErrorAction SilentlyContinue
+        if (-not $command) { throw 'Install Zig 0.16.0 and put zig on PATH, or pass -ZigPath.' }
+        $ZigPath = $command.Source
+    }
+}
+$ZigPath = (Resolve-Path -LiteralPath $ZigPath).Path
+if ((& $ZigPath version) -ne '0.16.0') { throw 'This build requires Zig 0.16.0.' }
+$output = Join-Path $root 'build/modern-controller/DINPUT.dll'
+New-Item -ItemType Directory -Path (Split-Path $output) -Force | Out-Null
+$previousCache = [Environment]::GetEnvironmentVariable('ZIG_GLOBAL_CACHE_DIR', 'Process')
+$env:ZIG_GLOBAL_CACHE_DIR = Join-Path $root 'build/zig-cache'
+try {
+    & $ZigPath cc -target x86-windows-gnu -std=c11 -O2 -Wall -Wextra -Werror `
+        -I (Join-Path $root 'include') -shared -o $output `
+        (Join-Path $root 'src/controller_proxy.c') `
+        (Join-Path $root 'src/controller_trace.c') `
+        (Join-Path $root 'src/controller_model.c') `
+        (Join-Path $root 'src/controller_forward.S') `
+        (Join-Path $root 'src/compat.c') `
+        (Join-Path $root 'src/controller_analog.c') `
+        (Join-Path $root 'src/analog_hook.c') `
+        (Join-Path $root 'src/analog_gate.S') `
+        (Join-Path $root 'src/dinput_proxy.def') -ladvapi32 -ldxguid
+    if ($LASTEXITCODE -ne 0) { throw 'Zig compilation failed.' }
+} finally {
+    [Environment]::SetEnvironmentVariable('ZIG_GLOBAL_CACHE_DIR', $previousCache, 'Process')
+}
+& (Join-Path $root 'scripts/Inspect-Proxy.ps1') -Path $output
+if (-not $?) { throw 'PE inspection failed.' }
+Write-Output "PASS: modern controller DLL SHA-256 $((Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash)"
