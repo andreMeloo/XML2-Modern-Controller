@@ -67,13 +67,20 @@ Xbox requires a recognized Microsoft gamepad VID/PID or XInput interface-path
 evidence. Known Sony VID/PIDs classify as PlayStation. Everything else is
 Generic; the textual product name alone is insufficient.
 
-ConsoleDefault contains 22 logical action assignments: sticks for movement and
-camera; South punch, East smash, West use/guard, North jump; LT allies, RT powers;
-right shoulder health/target lock; D-pad next/previous/increase/decrease; stick
+ConsoleDefault contains 23 logical action assignments: sticks for movement and
+camera; South punch, East smash, West use/guard, North jump; LT Call Allies, RT powers;
+LB Recover Energy (row 9 Ally), RB Recover HP (row 10 TargetLock);
+D-pad next/previous/increase/decrease; stick
 click map; Start pause; Back team information. It is published to master,
 working and menu binding sets using the original setter. Existing valid pad
 customizations and alternate keyboard/mouse bindings are preserved. Setting
 RestoreConsoleDefaults=1 explicitly requests the preset at the next launch.
+
+Focused manual check: close Dev and explicitly set Player1
+`RestoreConsoleDefaults=1` in its adjacent `true-analog.ini` to opt into replacing
+pad bindings with ConsoleDefault. Launch Dev; check RB health, LB energy and LT
+Call Allies. Close Dev and remove that key (or set it to 0) before making custom
+bindings. Leave the key disabled to test the help fix with existing bindings.
 
 ## Evidence and limits
 
@@ -101,8 +108,16 @@ RestoreConsoleDefaults=1 explicitly requests the preset at the next launch.
   classification is implemented, automatic Sony preset publication is deferred.
 - Generic uses the Xbox-compatible DirectInput index convention; arbitrary HID
   layouts may need a later adapter. Custom mappings remain intact.
-- Energy-pack action is omitted until its PC row is confirmed. DirectInput's
-  combined Xbox trigger axis retains the original game's limitation.
+- Retail `0061B030` and `igct.bnx` confirm row 9 `Ally` = Energy Pack,
+  row 10 `TargetLock` = Health Pack, row 11 `Solo` = Call Allies.
+  The former preset incorrectly used row 9 for LT allies and omitted row 11.
+  LT now publishes row 11, retaining the console Call Allies position documented
+  by the Xbox mapping reference below. No other controls were reorganized.
+  The change applies only to fresh configuration or explicit
+  `RestoreConsoleDefaults=1`; existing pad mappings, including the old LT
+  recovery binding, remain untouched. Set restore back to 0 before subsequent
+  launches to preserve later edits. DirectInput's combined Xbox trigger axis
+  retains the original game's limitation.
 - Ten original game slots, 32 session identities. Disconnected reservations
   survive within the process; slot exhaustion requires a restart/reconfiguration.
 - No EnumDevices, allocation or logging per gameplay frame. The main refresh

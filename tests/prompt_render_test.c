@@ -94,6 +94,21 @@ int main(void) {
     assert(!wcscmp(pg_render_safe_text(wide,owner,writer),L"[Y][Triangle]"));
     assert(!pg_render_text_begin(wide,writer,owner) && pg_render_active());
     *(unsigned *)(batch+0x10)=0;
+    {
+        WCHAR help[512]={0};
+        unsigned controls[]={MC_DPAD_LEFT,MC_DPAD_RIGHT,MC_LX_NEG,MC_NORTH};
+        for(unsigned style=0;style<2;style++) for(unsigned i=0;i<4;i++) {
+            int code=pg_render_code(style*24+controls[i]);
+            assert(code && code_to_atlas[(unsigned)code&255]==24+style);
+            assert(code_to_atlas[(unsigned)code>>8]==controls[i]);
+        }
+        int left=pg_render_code(MC_DPAD_LEFT),right=pg_render_code(24+MC_DPAD_RIGHT);
+        help[0]=(WCHAR)(left&255); help[1]=(WCHAR)((unsigned)left>>8);
+        help[2]=(WCHAR)(right&255); help[3]=(WCHAR)((unsigned)right>>8);
+        *(uintptr_t *)batch=0x6a4c4c; /* Incompatible help writer stays textual. */
+        assert(!wcscmp(pg_render_safe_text(help,owner,writer),L"[D-pad Left][D-pad Right]"));
+        assert(pg_render_active());
+    }
     *(uintptr_t *)batch=0x69c8e4;
     assert(!wcscmp(pg_render_safe_text(wide,owner,writer),L"[Y][Triangle]"));
     assert(pg_render_active());

@@ -3,12 +3,13 @@
 #undef NDEBUG
 #include <assert.h>
 static const char pc_text[128]="PC hint with mouse";
-static const char asset_text[128]="Controller hint $ATTACK";
-static const char test_key[128]="owned-key";
+static const char asset_text[128]="EXAMPLE:\\nPress Left = hero A\\nPress Right = hero B";
+static const char test_key[128]="switching_hint";
+static const char other_key[128]="other_hint";
 static void *observed_reader;
 void analog_log_event(const char *s) { fputs(s,stdout); }
 static const char *__attribute__((cdecl)) fake_localize(const char *key) {
-    assert(key==test_key); return pc_text;
+    assert(key==test_key || key==other_key); return pc_text;
 }
 static const char *__attribute__((thiscall)) fake_field(void *reader,const char *key,const char *empty) {
     assert(!strcmp(key,"text") && !*empty);
@@ -40,7 +41,8 @@ int main(void) {
     sources[0].source=PG_CONTROLLER;
     assert(call_site(test_key)==pc_text); /* Disconnect alone cannot select prose. */
     sources[0].connected=1;
-    assert(call_site(test_key)==asset_text && observed_reader);
+    assert(!strcmp(call_site(test_key),"EXAMPLE:\\nPress $DPAD_LF = hero A\\nPress $DPAD_RT = hero B") && observed_reader);
+    assert(call_site(other_key)==asset_text); /* Other help fields stay original. */
     tutorial_controller_text=0;
     assert(call_site(test_key)==pc_text);
     tutorial_controller_text=1; dynamic=0;

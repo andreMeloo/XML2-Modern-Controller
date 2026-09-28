@@ -61,17 +61,22 @@ int main(void) {
     map[19][1].kind = 2; REQUIRE(!mc_can_install_preset(map, 1));
 
     preset = mc_console_preset(&count);
-    REQUIRE(count == 22);
+    REQUIRE(count == 23);
     for (i = 0; i < count; i++) {
         REQUIRE(preset[i].action < 32 && !(rows & (1u << preset[i].action)));
         rows |= 1u << preset[i].action;
         REQUIRE(mc_native_code(preset[i].control, MC_GENERIC) != 0);
         REQUIRE(mc_native_code(preset[i].control, MC_PLAYSTATION) == 0);
+        for(unsigned j=0;j<i;j++) REQUIRE(preset[j].control!=preset[i].control);
+        if(preset[i].action==9) REQUIRE(preset[i].control==MC_LEFT_SHOULDER);
+        if(preset[i].action==10) REQUIRE(preset[i].control==MC_RIGHT_SHOULDER);
+        if(preset[i].action==11) REQUIRE(preset[i].control==MC_LEFT_TRIGGER);
     }
     REQUIRE(mc_native_code(MC_SOUTH, MC_XBOX) == 0x15);
     REQUIRE(mc_native_code(MC_LY_NEG, MC_XBOX) == 4);
     REQUIRE(mc_native_code(MC_DPAD_UP, MC_XBOX) == 0x14);
-    REQUIRE(!(rows & (1u << 11))); /* Do not invent the unconfirmed energy action. */
+    REQUIRE(rows & (1u << 11));
+    REQUIRE(mc_native_code(MC_LEFT_SHOULDER,MC_XBOX)==0x19);
     /* A restore clears every stale pad binding before publication, while
        retaining keyboard and mouse rows. This avoids duplicate actions. */
     memset(map,0,sizeof map);
@@ -80,17 +85,26 @@ int main(void) {
     map[0][0]=(McBinding){1,0x11}; map[19][2]=(McBinding){2,5};
     REQUIRE(mc_plan_preset(map,MC_GENERIC,0,0,writes)==0);
     count=mc_plan_preset(map,MC_GENERIC,0,1,writes);
-    REQUIRE(count==24);
+    REQUIRE(count==25);
     for (i=0;i<count;i++) map[writes[i].action][writes[i].slot]=(McBinding){writes[i].kind,writes[i].code};
     REQUIRE(map[7][0].kind==0 && map[41][3].kind==0);
     REQUIRE(map[0][0].kind==1 && map[0][0].code==0x11);
     REQUIRE(map[19][2].kind==2 && map[19][2].code==5);
     REQUIRE(map[4][1].kind==3 && map[4][1].code==0x15);
     REQUIRE(map[7][1].kind==3 && map[7][1].code==0x17);
+    REQUIRE(map[9][1].code==0x19 && map[10][1].code==0x1a && map[11][1].code==5);
     REQUIRE(mc_plan_preset(map,MC_PLAYSTATION,0,1,writes)==0);
     REQUIRE(mc_plan_preset(map,MC_GENERIC,10,1,writes)==0);
     memset(map,0,sizeof map);
-    REQUIRE(mc_plan_preset(map,MC_GENERIC,0,0,writes)==22);
+    REQUIRE(mc_plan_preset(map,MC_GENERIC,0,0,writes)==23);
+    map[9][1]=(McBinding){3,5}; /* Existing LT recovery mapping remains custom. */
+    map[10][1]=(McBinding){3,0x18};
+    {
+        McBinding original[MC_ACTIONS][MC_BINDING_SLOTS];
+        memcpy(original,map,sizeof map);
+        REQUIRE(mc_plan_preset(map,MC_GENERIC,0,0,writes)==0);
+        REQUIRE(!memcmp(original,map,sizeof map));
+    }
     puts("PASS: identity, conservative classification, reservations, unique player ownership and custom-binding protection.");
     puts("PASS: fresh ConsoleDefault and explicit restore remove stale pad actions, preserving keyboard/mouse bindings.");
     return 0;

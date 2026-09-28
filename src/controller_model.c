@@ -91,13 +91,14 @@ void mc_assign_players(McCore *core) {
     }
 }
 
-/* The Xbox manual and independently verified PC action rows are the sources.
-   Logical positions are separate from DirectInput codes. Energy-pack action
-   remains omitted until its PC action row is confirmed. */
+/* Retail row keys and igct.bnx distinguish Ally (Energy Pack), TargetLock
+   (Health Pack) and Solo (Call Allies). LT retains the documented console
+   Call Allies position; LB/RB form the recovery pair. */
 static const McPresetAction console_default[] = {
     {0, MC_LY_NEG}, {1, MC_LY_POS}, {2, MC_LX_NEG}, {3, MC_LX_POS},
     {4, MC_SOUTH}, {5, MC_EAST}, {6, MC_NORTH}, {7, MC_WEST},
-    {8, MC_RIGHT_TRIGGER}, {9, MC_LEFT_TRIGGER}, {10, MC_RIGHT_SHOULDER},
+    {8, MC_RIGHT_TRIGGER}, {9, MC_LEFT_SHOULDER}, {10, MC_RIGHT_SHOULDER},
+    {11, MC_LEFT_TRIGGER},
     {12, MC_DPAD_UP}, {13, MC_DPAD_DOWN}, {14, MC_DPAD_LEFT}, {15, MC_DPAD_RIGHT},
     {16, MC_RIGHT_STICK}, {17, MC_START}, {18, MC_BACK},
     {19, MC_RY_NEG}, {20, MC_RY_POS}, {21, MC_RX_NEG}, {22, MC_RX_POS}
@@ -119,6 +120,7 @@ unsigned mc_native_code(McControl control, McType type) {
         case MC_SOUTH: return 0x15; case MC_EAST: return 0x16;
         case MC_WEST: return 0x17; case MC_NORTH: return 0x18;
         case MC_LEFT_TRIGGER: return 5; case MC_RIGHT_TRIGGER: return 6;
+        case MC_LEFT_SHOULDER: return 0x19;
         case MC_RIGHT_SHOULDER: return 0x1a;
         case MC_DPAD_UP: return 0x14; case MC_DPAD_DOWN: return 0x13;
         case MC_DPAD_LEFT: return 0x12; case MC_DPAD_RIGHT: return 0x11;

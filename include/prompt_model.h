@@ -15,6 +15,7 @@ PgStyle pg_effective_style(PgStyle override, McType type);
 const char *pg_control_name(McControl button,PgStyle style);
 int pg_native_control(unsigned code,McType type,McControl *control);
 int pg_select_binding(const McBinding row[MC_BINDING_SLOTS],int game_slot,McBinding *binding);
+int pg_help_tokens(const char *key,const char *text,char *output,size_t capacity);
 void pg_input_init(PgInput *state);
 int pg_input_event(PgInput *state,PgSource source,unsigned now);
 int pg_input_pad(PgInput *state,float x,float y,float rx,float ry,int edge,float deadzone,unsigned now);

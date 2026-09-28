@@ -172,6 +172,27 @@ scoped selection after the retail observation and native ABI checks passed.
 Help prose is selected when the popup is created; reopen it after switching
 source to obtain the other prose variant. Action labels within it remain dynamic.
 
+### Switching help literal direction labels
+
+The controller-authored `switching_hint` field contains literal `Press Left =`
+and `Press Right =` example lines, unlike the PC localization's action tokens.
+At the existing `005EC061` popup callsite, only that key and the two exact
+escaped-newline example labels are normalized to `$DPAD_LF` / `$DPAD_RT`.
+Other prose, help screens and keyboard/mouse selection remain unchanged;
+unknown, incomplete, repeated or oversized text retains its original field.
+No assets or additional hooks are installed.
+
+The native token resolver `004BD720` calls the existing label boundary
+`00619E30`: action 17 maps to row 14 DecreaseHeroAggr; action 16 maps to row 15
+IncreaseHeroAggr. The assigned controller's current live row supplies its
+logical control, then the existing Xbox/PlayStation lookup supplies the glyph.
+ConsoleDefault resolves D-pad Left/Right, but remapped sticks/buttons resolve
+their own glyphs. Unknown bindings and incompatible writers keep the existing
+readable textual fallback; glyph rendering is never forced on another writer.
+Owned tests cover scoped normalization, native tutorial ABI, live row selection,
+both styles and incompatible-writer fallback. In-game appearance awaits the
+short user check of this help screen.
+
 Automated gates: `Test-Prompts.ps1` covers logical mappings, styles, custom live
 rows, unknown bindings, player isolation, noise/debounce, unplug/reconnect,
 invalid config, actual font-header offset, render range matching, UV/color,

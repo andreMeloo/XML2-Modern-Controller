@@ -5,6 +5,30 @@
 #include <string.h>
 int main(void) {
     McControl c; McBinding row[4]={{1,28},{3,0x15},{0,0},{0,0}},b; PgInput p1,p2;
+    {
+        char converted[256],small[8];
+        const char *help="EXAMPLE:\\nPress Left = hero A\\nPress Right = hero B\\nLeft alone remains prose.";
+        assert(pg_help_tokens("switching_hint",help,converted,sizeof converted));
+        assert(!strcmp(converted,"EXAMPLE:\\nPress $DPAD_LF = hero A\\nPress $DPAD_RT = hero B\\nLeft alone remains prose."));
+        assert(!pg_help_tokens("other_hint",help,converted,sizeof converted));
+        assert(!pg_help_tokens("switching_hint","Press Left and Right in prose",converted,sizeof converted));
+        assert(!pg_help_tokens("switching_hint",help,small,sizeof small));
+        assert(!pg_help_tokens("switching_hint","EXAMPLE:\\nPress Left = hero",converted,sizeof converted));
+        /* The inserted tokens map to retail action 17/16 and live rows 14/15.
+           Default and remapped rows resolve through the same binding policy. */
+        McBinding directions[2][4]={{{1,0xcb},{3,0x12},{0,0},{0,0}},{{1,0xcd},{3,0x11},{0,0},{0,0}}};
+        assert(pg_select_binding(directions[0],0,&b) && pg_native_control(b.code,MC_GENERIC,&c) && c==MC_DPAD_LEFT);
+        assert(!strcmp(pg_control_name(c,PG_XBOX),"D-pad Left"));
+        assert(!strcmp(pg_control_name(c,PG_PLAYSTATION),"D-pad Left"));
+        assert(pg_select_binding(directions[1],0,&b) && pg_native_control(b.code,MC_GENERIC,&c) && c==MC_DPAD_RIGHT);
+        directions[0][1].code=2; directions[1][1].code=0x18;
+        assert(pg_select_binding(directions[0],0,&b) && pg_native_control(b.code,MC_XBOX,&c) && c==MC_LX_NEG);
+        assert(pg_select_binding(directions[1],0,&b) && pg_native_control(b.code,MC_XBOX,&c) && c==MC_NORTH);
+        assert(!strcmp(pg_control_name(c,PG_PLAYSTATION),"Triangle"));
+        directions[0][1].code=999;
+        assert(pg_select_binding(directions[0],0,&b) && !pg_native_control(b.code,MC_GENERIC,&c));
+        assert(!pg_select_binding(directions[0],1,&b));
+    }
     for(unsigned i=0;i<MC_CONTROL_COUNT;i++) {
         assert(pg_control_name((McControl)i,PG_XBOX) && *pg_control_name((McControl)i,PG_XBOX));
         assert(pg_control_name((McControl)i,PG_PLAYSTATION) && *pg_control_name((McControl)i,PG_PLAYSTATION));

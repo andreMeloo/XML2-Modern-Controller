@@ -46,7 +46,7 @@ typedef enum {
 typedef struct { unsigned action; McControl control; } McPresetAction;
 typedef struct { unsigned kind, code; } McBinding;
 typedef struct { unsigned action, slot, kind, code; } McBindingWrite;
-#define MC_PRESET_WRITES (MC_ACTIONS * MC_BINDING_SLOTS + 22)
+#define MC_PRESET_WRITES (MC_ACTIONS * MC_BINDING_SLOTS + 23)
 
 McType mc_classify(const McIdentity *identity);
 const char *mc_type_name(McType type);

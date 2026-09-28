@@ -583,7 +583,7 @@ static int validate_binding_backend(void) {
         memcpy(expected,buffer.bytes,sizeof expected);
         capture_map((uintptr_t)buffer.bytes,map);
         count=mc_plan_preset(map,MC_GENERIC,0,(int)scenario,writes);
-        if (count!=(scenario?24u:22u)) return 0;
+        if (count!=(scenario?25u:23u)) return 0;
         for (i=0;i<count;i++) {
             McBindingWrite *write=&writes[i];
             unsigned *entry=(unsigned *)(expected+(write->action*MC_BINDING_SLOTS+write->slot)*12);
@@ -650,7 +650,7 @@ static void apply_console_defaults(void) {
         p->restore_defaults=0;
         preset_state[player]=3;
         status("PRESET APPLIED player=%u preset=ConsoleDefault pad=%d type=%s actions=%u banks=master,working,menu runtime_only=1",
-              player+1,device->game_slot,mc_type_name(type),22u);
+              player+1,device->game_slot,mc_type_name(type),23u);
     }
 }
 

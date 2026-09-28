@@ -116,6 +116,7 @@ static UpdateFn update_original;
 typedef const char *(__attribute__((cdecl)) *LocalizeFn)(const char *);
 typedef const char *(__attribute__((thiscall)) *FieldFn)(void *,const char *,const char *);
 static unsigned tutorial_notes;
+static char switching_help[2048];
 /* Called only by the checked CPopupDialog::create PC-hint callsite. Reader is
    its live stack local. No asset is extracted, replaced or modified. */
 const char *__attribute__((cdecl)) mc_tutorial_observe(const char *key,void *reader) {
@@ -129,7 +130,23 @@ const char *__attribute__((cdecl)) mc_tutorial_observe(const char *key,void *rea
     if(tracing && tutorial_notes++<8 && readable(key,64) && readable(pc,128) && readable(asset,128))
         note("TUTORIAL key=%.60s reader=%p pc=%.110s asset=%.110s select=%s",key,reader,pc,asset,
              use_controller?"asset":"PC");
-    if(use_controller && readable(asset,1) && *asset) return asset;
+    if(use_controller && readable(asset,1) && *asset) {
+        unsigned n;
+        if(!readable(key,15) || strcmp(key,"switching_hint")) return asset;
+        /* Bound and validate the loaded field before the scoped token pass.
+           Unsupported prose retains the original field and renderer fallback. */
+        for(n=0;n<sizeof switching_help;n++) {
+            if(!readable(asset+n,1)) break;
+            if(!asset[n]) {
+                if(pg_help_tokens(key,asset,switching_help,sizeof switching_help)) {
+                    if(tracing) note("HELP switching_hint Left/Right -> native DPAD_LF/DPAD_RT action tokens");
+                    return switching_help;
+                }
+                break;
+            }
+        }
+        return asset;
+    }
     return pc;
 }
 static const char *__attribute__((naked,cdecl)) tutorial_gate(const char *key __attribute__((unused))) {

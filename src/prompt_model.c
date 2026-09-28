@@ -50,6 +50,26 @@ int pg_select_binding(const McBinding row[MC_BINDING_SLOTS],int slot,McBinding *
     for(i=0;i<MC_BINDING_SLOTS;i++) if(row[i].kind==(unsigned)slot+3 && row[i].code && row[i].code!=~0u) { *out=row[i]; return 1; }
     return 0;
 }
+/* Only the two literal binding labels in switching_hint's example. Native
+   tokens resolve the current action/row/binding; no physical control is assumed. */
+int pg_help_tokens(const char *key,const char *text,char *output,size_t capacity) {
+    static const char *labels[]={"\\nPress Left = ","\\nPress Right = "};
+    static const char *tokens[]={"\\nPress $DPAD_LF = ","\\nPress $DPAD_RT = "};
+    size_t used=0; unsigned found=0;
+    if(!key || !text || !output || !capacity || strcmp(key,"switching_hint") || !strstr(text,"EXAMPLE:")) return 0;
+    while(*text) {
+        const char *copy=text; size_t take=1; unsigned i;
+        for(i=0;i<2;i++) if(!strncmp(text,labels[i],strlen(labels[i]))) {
+            if(found&(1u<<i)) return 0;
+            found|=1u<<i; copy=tokens[i]; take=strlen(copy);
+            text+=strlen(labels[i])-1; break;
+        }
+        if(take>=capacity-used) return 0;
+        memcpy(output+used,copy,take); used+=take; text++;
+    }
+    output[used]=0;
+    return found==3;
+}
 void pg_input_init(PgInput *s) { memset(s,0,sizeof *s); }
 int pg_input_event(PgInput *s,PgSource source,unsigned now) {
     if(source==PG_CONTROLLER && !s->connected) return 0;
