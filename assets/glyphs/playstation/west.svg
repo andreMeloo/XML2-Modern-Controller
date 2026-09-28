@@ -1,3 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-<g fill="#152b3e" stroke="#d2b477" stroke-width="3"><circle cx="32" cy="32" r="27"/></g><circle cx="32" cy="32" r="22" fill="none" stroke="#86bde8" stroke-width="2"/><g fill="none" stroke="#fff2d3" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><rect x="20" y="20" width="24" height="24"/></g>
+  <circle cx="32" cy="32" r="27" fill="#173048" stroke="#d2b477" stroke-width="3" />
+  <circle cx="32" cy="32" r="22" fill="#203749" stroke="#e989d9" stroke-width="2.4" />
+  <circle cx="32" cy="32" r="18" fill="#203749" opacity="0.6" />
+  <rect x="20" y="20" width="24" height="24" fill="none" stroke="#e989d9" stroke-width="4" />
+  <rect x="20" y="20" width="24" height="24" fill="none" stroke="#fff2d3" stroke-width="1.1" opacity="0.85" />
 </svg>

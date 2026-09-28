@@ -71,6 +71,12 @@ int main(void) {
     assert(submitted[0].color==0xffabcdef);
     assert(submitted[0].u==mc_glyph_uv[28][0] && submitted[0].v==mc_glyph_uv[28][1]);
     assert(submitted[2].v==mc_glyph_uv[28][3]);
+    /* Both sprite triangles share exactly the same edge, including UV/color.
+       No diagonal gap, overlapping strip order or UV break is introduced. */
+    assert(!memcmp(&submitted[2],&submitted[3],sizeof(Vertex)));
+    assert(!memcmp(&submitted[1],&submitted[4],sizeof(Vertex)));
+    assert(submitted[5].x==submitted[1].x && submitted[5].z==submitted[2].z);
+    assert(submitted[5].u==submitted[1].u && submitted[5].v==submitted[2].v);
     /* A following word closes only the visual gap; native geometry stays put. */
     token=pg_render_code(MC_NORTH); wide[0]=(WCHAR)(token&255); wide[1]=(WCHAR)(token>>8);
     wide[2]=' '; wide[3]='C'; wide[4]=0;
@@ -96,11 +102,10 @@ int main(void) {
     *(unsigned *)(batch+0x10)=0;
     {
         WCHAR help[512]={0};
-        unsigned controls[]={MC_DPAD_LEFT,MC_DPAD_RIGHT,MC_LX_NEG,MC_NORTH};
-        for(unsigned style=0;style<2;style++) for(unsigned i=0;i<4;i++) {
-            int code=pg_render_code(style*24+controls[i]);
+        for(unsigned style=0;style<2;style++) for(unsigned i=0;i<MC_CONTROL_COUNT;i++) {
+            int code=pg_render_code(style*24+i);
             assert(code && code_to_atlas[(unsigned)code&255]==24+style);
-            assert(code_to_atlas[(unsigned)code>>8]==controls[i]);
+            assert(code_to_atlas[(unsigned)code>>8]==i);
         }
         int left=pg_render_code(MC_DPAD_LEFT),right=pg_render_code(24+MC_DPAD_RIGHT);
         help[0]=(WCHAR)(left&255); help[1]=(WCHAR)((unsigned)left>>8);

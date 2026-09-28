@@ -172,26 +172,70 @@ scoped selection after the retail observation and native ABI checks passed.
 Help prose is selected when the popup is created; reopen it after switching
 source to obtain the other prose variant. Action labels within it remain dynamic.
 
-### Switching help literal direction labels
+### Help coverage sweep
 
-The controller-authored `switching_hint` field contains literal `Press Left =`
-and `Press Right =` example lines, unlike the PC localization's action tokens.
-At the existing `005EC061` popup callsite, only that key and the two exact
-escaped-newline example labels are normalized to `$DPAD_LF` / `$DPAD_RT`.
-Other prose, help screens and keyboard/mouse selection remain unchanged;
+The controller-authored `switching_hint` field contains literal Left, Right,
+Down and Up example lines, unlike the PC localization's action tokens.
+At the existing `005EC061` popup callsite, those exact escaped-newline example
+labels become `$DPAD_LF`, `$DPAD_RT`, `$DPAD_DN`, `$DPAD_UP`.
+`automap_hint` normalizes its right analog stick/thumbstick click instruction
+to `$MAPTOGGLE`, so a remapped Map Toggle action displays its current binding.
+One legacy `potion_hint` variant instructs health recovery using `$ALLY` (PC
+Energy Pack). Only that complete health-pack instruction is normalized to
+`$TARGET_LOCK` (PC Health Pack); already correct health/energy tokens are kept.
+Other prose, help fields and keyboard/mouse selection remain unchanged;
 unknown, incomplete, repeated or oversized text retains its original field.
-No assets or additional hooks are installed.
+No game assets or additional hooks are installed.
 
 The native token resolver `004BD720` calls the existing label boundary
 `00619E30`: action 17 maps to row 14 DecreaseHeroAggr; action 16 maps to row 15
-IncreaseHeroAggr. The assigned controller's current live row supplies its
+IncreaseHeroAggr; actions 11/12 map Up/Down to rows 12/13, action 15 maps
+Map Toggle to row 16 and action 13 maps Health Pack to row 10.
+The assigned controller's current live row supplies its
 logical control, then the existing Xbox/PlayStation lookup supplies the glyph.
-ConsoleDefault resolves D-pad Left/Right, but remapped sticks/buttons resolve
+ConsoleDefault resolves all four D-pad directions, but remapped sticks/buttons resolve
 their own glyphs. Unknown bindings and incompatible writers keep the existing
 readable textual fallback; glyph rendering is never forced on another writer.
 Owned tests cover scoped normalization, native tutorial ABI, live row selection,
 both styles and incompatible-writer fallback. In-game appearance awaits the
-short user check of this help screen.
+short user check of these help screens.
+
+Sweep scope: all 4,408 Dev `.engb`, `.xmlb`, `.bnx` and script files (159,768
+printable spans), plus standalone prompt adapters, renderer, tests and the
+existing retail-boundary documentation. Reviewed the eight PC tutorial overrides,
+other dialog/hint/help fields, conversations, menus and PC localization. The
+additional literal-label hit in an X-jet script is a comment about using a vehicle,
+not a control prompt. Automap's physical click label is a real bypass; continuous
+left-stick throwing prose, flight direction prose, and ordinary "up/down/left"
+words do not identify a single bindable action and are retained. Existing action
+tokens continue through `004BD720`/`00619E30`; the supported executable-section
+call census confirms `004BD739` as the sole direct action-label caller.
+Advanced's incompatible writer
+keeps its established local text fallback. No new reverse-engineering boundary
+or writer hook was added. This is static/fixture coverage, not proof that every
+screen and localized variant has been visited during gameplay.
+
+### Full refined art integration
+
+Imported all 48 SVGs from `XML2-Glyph-Assets-Refined-FullPass.zip`
+(SHA-256 `f72e18000ec04d7b8d9d0cbe0599f3cc44e48d7e1d9a5069d1e15317b6aaa894`).
+Its MIT manifest is semantically identical; the existing manifest file, names,
+IDs and UV mapping are retained. Forty font labels are converted to our own
+vector lettering so no Arial/Helvetica installation affects the build.
+Sixteen stick-direction glyphs need an integration adjustment: the supplied
+outlined arrow still overlaps its cap/badge. A smaller cap/badge at the left
+and external arrow at the right preserve the new palette/frame and separate
+the two references in both styles. The supplied eight D-pad arrows are retained.
+
+resvg 0.47.0 regenerates all PNGs and the 512x512 RGBA atlas with 4px gutters;
+the metadata/header are regenerated without logical changes. Decoded BGRA
+SHA-256 is `6a11ef30dc9717b06d23ced009434ba4ee74ad35afc5a35ef37dc0e318d78824`.
+Validation checks transparent gutters, unused cells, SVG/PNG correspondence,
+connected D-pad arrow masks, and repeatable derived-file hashes. Renderer
+fixtures verify exact shared position/UV/color edges of the two sprite triangles;
+no renderer change is required by the observed geometry. Visual review at 56px
+and 28px shows separated stick arrows and continuous D-pad arrows. In-game
+seam/clipping confirmation remains a focused user check in Dev.
 
 Automated gates: `Test-Prompts.ps1` covers logical mappings, styles, custom live
 rows, unknown bindings, player isolation, noise/debounce, unplug/reconnect,

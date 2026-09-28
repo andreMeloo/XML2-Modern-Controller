@@ -14,6 +14,19 @@ int main(void) {
         assert(!pg_help_tokens("switching_hint","Press Left and Right in prose",converted,sizeof converted));
         assert(!pg_help_tokens("switching_hint",help,small,sizeof small));
         assert(!pg_help_tokens("switching_hint","EXAMPLE:\\nPress Left = hero",converted,sizeof converted));
+        assert(pg_help_tokens("switching_hint","EXAMPLE:\\nPress Left = one\\nPress Right = two\\nPress Down = three\\nPress Up = four",converted,sizeof converted));
+        assert(!strcmp(converted,"EXAMPLE:\\nPress $DPAD_LF = one\\nPress $DPAD_RT = two\\nPress $DPAD_DN = three\\nPress $DPAD_UP = four"));
+        assert(!pg_help_tokens("switching_hint","EXAMPLE:\\nPress Left = one\\nPress Right = two\\nPress Up = one\\nPress Up = two",converted,sizeof converted));
+        assert(!pg_help_tokens("switching_hint","EXAMPLE:\\nPress Down = one\\nPress Up = two",converted,sizeof converted));
+        assert(pg_help_tokens("automap_hint","Click the right analog stick to cycle map sizes.",converted,sizeof converted));
+        assert(!strcmp(converted,"Press $MAPTOGGLE to cycle map sizes."));
+        assert(pg_help_tokens("automap_hint","Click the right thumbstick to cycle map sizes.",converted,sizeof converted));
+        assert(!pg_help_tokens("other_hint","Click the right thumbstick to cycle map sizes.",converted,sizeof converted));
+        assert(!pg_help_tokens("automap_hint","The right thumbstick moves the camera.",converted,sizeof converted));
+        assert(pg_help_tokens("potion_hint","Press $ALLY to replenish your Health with Health Packs.",converted,sizeof converted));
+        assert(!strcmp(converted,"Press $TARGET_LOCK to replenish your Health with Health Packs."));
+        assert(!pg_help_tokens("power_hint","Press $ALLY to replenish your Energy with Energy Packs.",converted,sizeof converted));
+        assert(!pg_help_tokens("potion_hint","Press $TARGET_LOCK to replenish your Health with Health Packs.",converted,sizeof converted));
         /* The inserted tokens map to retail action 17/16 and live rows 14/15.
            Default and remapped rows resolve through the same binding policy. */
         McBinding directions[2][4]={{{1,0xcb},{3,0x12},{0,0},{0,0}},{{1,0xcd},{3,0x11},{0,0},{0,0}}};
@@ -28,6 +41,10 @@ int main(void) {
         directions[0][1].code=999;
         assert(pg_select_binding(directions[0],0,&b) && !pg_native_control(b.code,MC_GENERIC,&c));
         assert(!pg_select_binding(directions[0],1,&b));
+        McBinding map_row[4]={{1,0x32},{3,0x1e},{0,0},{0,0}};
+        assert(pg_select_binding(map_row,0,&b) && pg_native_control(b.code,MC_GENERIC,&c) && c==MC_RIGHT_STICK);
+        map_row[1].code=0x15;
+        assert(pg_select_binding(map_row,0,&b) && pg_native_control(b.code,MC_GENERIC,&c) && c==MC_SOUTH);
     }
     for(unsigned i=0;i<MC_CONTROL_COUNT;i++) {
         assert(pg_control_name((McControl)i,PG_XBOX) && *pg_control_name((McControl)i,PG_XBOX));

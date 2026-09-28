@@ -1,9 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-<g fill="#152b3e" stroke="#d2b477" stroke-width="3"><rect x="5" y="9" width="54" height="46" rx="9"/></g>
-
-    <rect x="21" y="18" width="22" height="18" rx="3.5" fill="none" stroke="#fff2d3" stroke-width="2.6"/>
-    <rect x="27" y="28" width="22" height="18" rx="3.5" fill="none" stroke="#fff2d3" stroke-width="2.6"/>
-    <path d="M18 32H32" stroke="#fff2d3" stroke-width="3.2" stroke-linecap="round"/>
-    <path d="M18 32L24 26M18 32L24 38" fill="none" stroke="#fff2d3" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
-
+  <rect x="5" y="9" width="54" height="46" rx="9" fill="#173048" stroke="#d2b477" stroke-width="3" />
+  <rect x="15" y="18" width="34" height="28" rx="7" fill="#203749" stroke="#fff2d3" stroke-width="2.2" />
+  <rect x="22" y="21" width="13" height="11" rx="2.5" fill="none" stroke="#fff2d3" stroke-width="2.4" />
+  <rect x="29" y="30" width="13" height="11" rx="2.5" fill="none" stroke="#fff2d3" stroke-width="2.4" />
+  <path d="M17.5 32H30" stroke="#fff2d3" stroke-width="3" stroke-linecap="round" />
+  <path d="M17.5 32L23 26.5M17.5 32L23 37.5" fill="none" stroke="#fff2d3" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
 </svg>

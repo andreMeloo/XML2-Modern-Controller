@@ -1,3 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-<g fill="#152b3e" stroke="#d2b477" stroke-width="3"><circle cx="32" cy="32" r="27"/></g><circle cx="32" cy="32" r="22" fill="none" stroke="#f0d377" stroke-width="2"/><g transform="translate(24 20) scale(2)" fill="none" stroke="#fff2d3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline transform="translate(0 0)" points="0,0 4,6 8,0"/><polyline transform="translate(0 0)" points="4,6 4,12"/></g>
+  <circle cx="32" cy="32" r="27" fill="#173048" stroke="#d2b477" stroke-width="3" />
+  <circle cx="32" cy="32" r="22" fill="#203749" stroke="#d7bb59" stroke-width="2.4" />
+  <circle cx="32" cy="32" r="15.8" fill="#d7bb59" opacity="0.95" />
+  <g transform="translate(26.5 22.7) scale(1.375)" fill="none" stroke="#fff2d3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <polyline transform="translate(0 0)" points="0,0 4,6 8,0" />
+    <polyline transform="translate(0 0)" points="4,6 4,12" />
+  </g>
 </svg>
