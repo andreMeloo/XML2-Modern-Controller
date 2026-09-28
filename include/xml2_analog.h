@@ -5,7 +5,14 @@
 #include <windows.h>
 #include <stdint.h>
 
+#ifdef XML2_MODERN_CONTROLLER
+#include "project_version.h"
+#define XTA_VERSION XMC_VERSION
+#define XTA_PRODUCT "XML2 Modern Controller"
+#else
 #define XTA_VERSION "0.1.0"
+#define XTA_PRODUCT "XML2 True Analog"
+#endif
 #define XTA_KNOWN_SHA256 "146CD9C316EDB57A267CD73753A7CE9AF647E52AAB750D449C6B278FB4A1669B"
 
 typedef enum {

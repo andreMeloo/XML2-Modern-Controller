@@ -86,14 +86,20 @@ static int core_configured;
 static int observed_main_refresh;
 static int binding_backend_ready;
 
-static void event(const char *format, ...) {
+static void emit_event(const char *format, va_list args) {
     char body[640], line[720];
-    va_list args;
-    va_start(args, format);
     vsnprintf(body, sizeof body, format, args);
-    va_end(args);
     snprintf(line, sizeof line, "Controller t=%lu %s\r\n", (unsigned long)GetTickCount(), body);
     analog_log_event(line);
+}
+static void event(const char *format, ...) {
+    va_list args;
+    if(!trace_enabled) return;
+    va_start(args,format); emit_event(format,args); va_end(args);
+}
+static void status(const char *format, ...) {
+    va_list args;
+    va_start(args,format); emit_event(format,args); va_end(args);
 }
 
 static int readable(const void *pointer, size_t size) {
@@ -306,7 +312,7 @@ static void *wrap_interface(void *object,unsigned version,int device,unsigned me
     vtable=*(void ***)object;
     if (methods>32 || !readable(vtable,methods*sizeof(void *))) return object;
     for (i=0;i<MAX_INTERFACES;i++) if (!interfaces[i].object) break;
-    if (i==MAX_INTERFACES) { event("TRACE CAPACITY exceeded; interface left unchanged"); return object; }
+    if (i==MAX_INTERFACES) { status("TRACE CAPACITY exceeded; interface left unchanged"); return object; }
     it=&interfaces[i]; memset(it,0,sizeof *it);
     it->object=object; it->version=version; it->device=device; it->methods=methods;
     it->last_acquire=it->last_state=it->last_poll=E_PENDING;
@@ -401,7 +407,7 @@ static DWORD WINAPI inventory_thread(void *unused) {
     int notified=0;
     (void)unused;
     hr=original_factory(observer_instance,0x0800,&IID_IDirectInput8A,&observer,NULL);
-    if (FAILED(hr) || !observer) { event("WINDOWS INVENTORY observer creation failed hr=0x%08lX",(unsigned long)hr); return 0; }
+    if (FAILED(hr) || !observer) { status("WINDOWS INVENTORY observer creation failed hr=0x%08lX",(unsigned long)hr); return 0; }
     vtable=*(void ***)observer;
     inventory_changed=CreateEventW(NULL,FALSE,FALSE,NULL);
     if (register_notification && inventory_changed) {
@@ -410,7 +416,7 @@ static DWORD WINAPI inventory_thread(void *unused) {
         filter.FilterType=CM_NOTIFY_FILTER_TYPE_DEVICEINTERFACE;
         register_notification(&filter,inventory_changed,device_notification,&notification);
     }
-    event("WINDOWS INVENTORY worker started; notifications=%s fallback_interval=5000ms",notification?"ON":"unavailable");
+    status("WINDOWS INVENTORY worker started; notifications=%s fallback_interval=5000ms",notification?"ON":"unavailable");
     for (;;) {
         Inventory current={0};
         unsigned i;
@@ -618,11 +624,11 @@ static void apply_console_defaults(void) {
         if (!ready) continue;
         capture_map(sets[0],map);
         if (!mc_can_install_preset(map,p->restore_defaults)) {
-            if (preset_state[player]!=1) event("PRESET PRESERVED player=%u existing custom or keyboard/mouse alternate bindings",player+1);
+            if (preset_state[player]!=1) status("PRESET PRESERVED player=%u existing custom or keyboard/mouse alternate bindings",player+1);
             preset_state[player]=1; continue;
         }
         if (type==MC_PLAYSTATION) {
-            if (preset_state[player]!=2) event("PRESET DEFERRED player=%u Sony native HID mapping not hardware-validated; existing bindings preserved",player+1);
+            if (preset_state[player]!=2) status("PRESET DEFERRED player=%u Sony native HID mapping not hardware-validated; existing bindings preserved",player+1);
             preset_state[player]=2; continue;
         }
         /* Every destination is checked before the first setter call. */
@@ -643,7 +649,7 @@ static void apply_console_defaults(void) {
         }
         p->restore_defaults=0;
         preset_state[player]=3;
-        event("PRESET APPLIED player=%u preset=ConsoleDefault pad=%d type=%s actions=%u banks=master,working,menu runtime_only=1",
+        status("PRESET APPLIED player=%u preset=ConsoleDefault pad=%d type=%s actions=%u banks=master,working,menu runtime_only=1",
               player+1,device->game_slot,mc_type_name(type),22u);
     }
 }
@@ -663,7 +669,7 @@ static void update_model(const Inventory *inventory) {
         if (index>=0 && (index!=before[player] || !core_configured)) {
             McDevice *device=&core.device[index];
             char guid[40]; guid_string(&device->identity.instance,guid);
-            event("DEVICE ASSIGNED TO PLAYER player=%u registry_index=%d game_slot=%d instance=%s connected=%d detected=%s effective=%s",
+            status("DEVICE ASSIGNED TO PLAYER player=%u registry_index=%d game_slot=%d instance=%s connected=%d detected=%s effective=%s",
                   player+1,index,device->game_slot,guid,device->connected,mc_type_name(device->detected_type),
                   mc_type_name(core.player[player].type_override==MC_UNKNOWN?device->detected_type:core.player[player].type_override));
         }
@@ -700,7 +706,7 @@ static void refresh_main(const Inventory *inventory,unsigned lost) {
         if (slot<0) {
             for (free_slot=0;free_slot<MC_GAME_SLOTS;free_slot++) if (!(occupied&(1u<<free_slot))) break;
             if (free_slot==MC_GAME_SLOTS) {
-                event("DEVICE AVAILABLE no free game slot; ten original slots/reservations exhausted"); continue;
+                status("DEVICE AVAILABLE no free game slot; ten original slots/reservations exhausted"); continue;
             }
             slot=(int)free_slot; occupied|=1u<<free_slot;
         }
@@ -729,7 +735,7 @@ static void refresh_main(const Inventory *inventory,unsigned lost) {
         }
     }
     update_model(&refresh_inventory);
-    event("HOTPLUG MAIN REFRESH generation=%ld connected_records=%u confirmed_lost_mask=0x%X duration_ms=%lu",
+    status("HOTPLUG MAIN REFRESH generation=%ld connected_records=%u confirmed_lost_mask=0x%X duration_ms=%lu",
           (long)applied_generation,refresh_inventory.count,lost,(unsigned long)(GetTickCount()-begin));
 }
 
@@ -752,11 +758,11 @@ static void pump_controller_core(void *buffer,DWORD size,uintptr_t caller) {
     if (!binding_backend_ready) {
         if (trace_enabled) {
             binding_backend_ready=validate_binding_backend()?1:-1;
-            event("PRESET BACKEND %s fresh/restore own-buffer setter check; player bindings untouched",
+            status("PRESET BACKEND %s fresh/restore own-buffer setter check; player bindings untouched",
                   binding_backend_ready==1?"PASS":"REFUSED");
         } else {
             binding_backend_ready=1;
-            event("PRESET BACKEND profile validated; own-buffer selftest disabled with ControllerTrace=0");
+            status("PRESET BACKEND profile validated; own-buffer selftest disabled with ControllerTrace=0");
         }
     }
     generation=InterlockedCompareExchange(&inventory_generation,0,0);
@@ -793,7 +799,7 @@ static void pump_controller_core(void *buffer,DWORD size,uintptr_t caller) {
                 ((AdvancedRefreshFn)(image_base+0x228e20))((void *)auxiliary,1);
                 auxiliary_refreshing=0;
                 auxiliary_applied=auxiliary; auxiliary_factory=factory; auxiliary_generation=applied_generation;
-                event("HOTPLUG ADVANCED REFRESH generation=%ld manager=%p snapshot_records=%u",(long)applied_generation,(void *)auxiliary,refresh_inventory.count);
+                status("HOTPLUG ADVANCED REFRESH generation=%ld manager=%p snapshot_records=%u",(long)applied_generation,(void *)auxiliary,refresh_inventory.count);
             }
         } else { auxiliary_applied=0; auxiliary_factory=0; auxiliary_generation=0; }
     }
@@ -812,7 +818,7 @@ static HRESULT WINAPI create8(HINSTANCE instance,DWORD version,REFIID iid,void *
             observer_instance=instance;
             thread=CreateThread(NULL,0,inventory_thread,NULL,0,NULL);
             if (thread) CloseHandle(thread);
-            else event("WINDOWS INVENTORY worker could not start");
+            else status("WINDOWS INVENTORY worker could not start");
         }
     }
     return hr;
@@ -852,7 +858,7 @@ static int arm_factory_observer(void) {
             if (original_get_proc!=GetProcAddress || !VirtualProtect(&addresses[j].u1.Function,4,PAGE_READWRITE,&old)) return 0;
             InterlockedExchange((LONG volatile *)&addresses[j].u1.Function,(LONG)(uintptr_t)get_proc);
             VirtualProtect(&addresses[j].u1.Function,4,old,&restored);
-            event("CORE ARMED GetProcAddress IAT=%p; HotPlug=%s",&addresses[j].u1.Function,hotplug_enabled?"ON":"OFF");
+            status("CORE ARMED GetProcAddress IAT=%p; HotPlug=%s",&addresses[j].u1.Function,hotplug_enabled?"ON":"OFF");
             return 1;
         }
     }
@@ -872,15 +878,15 @@ void controller_core_prepare(HMODULE module) {
         GetPrivateProfileIntW(L"General",L"PromptTrace",0,path)!=1 &&
         GetPrivateProfileIntW(L"General",L"AdvancedTrace",0,path)!=1 &&
         GetPrivateProfileIntW(L"General",L"AdvancedController",0,path)!=1) return;
-    event("GAME START XML2 Modern Controller core; HotPlug=%s",hotplug_enabled?"ON":"OFF");
+    status("GAME START " XTA_PRODUCT " v" XTA_VERSION "; HotPlug=%s",hotplug_enabled?"ON":"OFF");
     if (!analog_identify_build(&build) || build.status!=XTA_SUPPORTED) {
-        event("TRACE REFUSED unsupported build; no IAT or COM changes"); return;
+        status("TRACE REFUSED unsupported build; no IAT or COM changes"); return;
     }
     image_base=(uintptr_t)GetModuleHandleW(NULL);
     wrapper_cell=build.wrapper_cell;
     refresh_validated=validate_refresh_profile();
     if (hotplug_enabled && !refresh_validated) {
-        event("HOTPLUG REFUSED refresh/signature profile changed; observer only"); hotplug_enabled=0;
+        status("HOTPLUG REFUSED refresh/signature profile changed; observer only"); hotplug_enabled=0;
     }
     mc_core_init(&core);
     mc_prompts_prepare(image_base,path,&core);
@@ -901,13 +907,13 @@ void controller_core_prepare(HMODULE module) {
                   player+1,core.player[player].controller_index,mc_type_name(core.player[player].type_override),
                   core.player[player].console_default?"ConsoleDefault":"None",core.player[player].restore_defaults);
             if (player && GetPrivateProfileIntW(section,L"TrueAnalogMovement",0,path)==1)
-                event("TRUE ANALOG DEFERRED player=%u multiplayer resolver path not hardware-validated",player+1);
+                status("TRUE ANALOG DEFERRED player=%u multiplayer resolver path not hardware-validated",player+1);
         }
     }
     mc_advanced_prepare(image_base,path,&core);
-    event("REFRESH PROFILE %s entry=%p callback=%p; True Analog core remains P1 validated",
+    status("REFRESH PROFILE %s entry=%p callback=%p; True Analog core remains P1 validated",
           refresh_validated?"VALIDATED":"REFUSED",(void *)(image_base+0x228E20u),(void *)(image_base+0x228E00u));
-    if (!arm_factory_observer()) event("TRACE REFUSED factory observer unavailable");
+    if (!arm_factory_observer()) status("TRACE REFUSED factory observer unavailable");
 }
 
 void controller_core_created7(const IID *iid,void *object) {

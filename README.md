@@ -1,107 +1,117 @@
-# XML2 True Analog
+# XML2 Modern Controller
 
-True analog movement fix for **X-Men Legends II on PC**. The PC port applies a
-0.75 threshold to each movement component separately, losing diagonals and
-intermediate directions. This mod keeps both movement components after a
-configurable radial deadzone, including partial stick speed. It leaves the
-camera, buttons, triggers, keyboard and game executable unchanged.
+**v0.5.0-beta.1** — controller improvements for X-Men Legends II on PC.
+Runtime hooks are reversible; `XMen2.exe` is never edited. Keyboard, mouse and
+controller remain available together. LastInputSource changes prompt presentation only.
 
-## Requirements and installation
+## Features
 
-- A working, legally obtained PC installation with `XMen2.exe`.
-- Windows 10 or later. The release DLL is x86 and uses Windows system DirectInput
-  and Universal C Runtime components; no separate mod runtime is bundled.
-- The tested EXE has SHA-256
-  `146CD9C316EDB57A267CD73753A7CE9AF647E52AAB750D449C6B278FB4A1669B`.
-  Other builds are detected but do not receive the hook.
+- True 360° analog movement, partial-stick speed and radial deadzone.
+- Controller hot-plug and automatic reconnect.
+- Dynamic keyboard/controller prompts with original Xbox and PlayStation glyph artwork.
+- Generic controllers use Xbox presentation by default.
+- Advanced controller navigation with South/A Accept and East/B Back.
+- Console-style controller defaults that preserve existing custom bindings.
 
-1. Check that the unmodified game starts and that no other `DINPUT.dll` is
-   already in the folder containing `XMen2.exe`.
-2. Extract the release folder's `DINPUT.dll` and `true-analog.ini` beside
-   `XMen2.exe`.
-3. Start the game normally. `true-analog.log` in that folder reports the build,
-   signature result and hook status.
+## Installation
 
-To uninstall, close the game and remove this mod's `DINPUT.dll`,
-`true-analog.ini` and optional `true-analog.log`. `XMen2.exe` is never edited.
-Do not remove a `DINPUT.dll` belonging to another mod.
+1. Start with a working PC installation. Close the game.
+2. Check that no other mod owns `DINPUT.dll`; do not overwrite another proxy.
+3. Extract this package's `DINPUT.dll` and `true-analog.ini` beside `XMen2.exe`.
+4. Open the game normally. No build tools or source checkout are required.
+
+Windows 10 or later is targeted; the x86 DLL uses Windows DirectInput and the
+Universal C Runtime. Only the PC build below has been validated.
+
+## Uninstallation
+
+Close the game and remove this mod's `DINPUT.dll`, `true-analog.ini` and optional
+`true-analog.log`. The executable and game assets are unchanged.
 
 ## Configuration
 
-Edit `true-analog.ini` before launching the game:
+Edit `true-analog.ini` before launching. The legacy filename is intentionally retained.
 
-```ini
-[Controller]
-TrueAnalogMovement=1
-Deadzone=0.15
-PreserveMagnitude=1
-ControllerIndex=0
-DebugInput=0
-```
+| Section / option | Default | Purpose |
+| --- | --- | --- |
+| Controller / TrueAnalogMovement | 1 | Enable the P1 movement correction |
+| Controller / Deadzone | 0.15 | Radial deadzone, valid range 0–0.5 |
+| Controller / PreserveMagnitude | 1 | Partial-stick speed; keep 1 in this beta (0 safely disables the hook) |
+| Controller / ControllerIndex | 0 | Preferred DirectInput controller; other indices remain experimental |
+| General / HotPlug | 1 | Late connection and reconnect |
+| General / DynamicPrompts | 1 | Switch prompt presentation with real input |
+| General / ControllerGlyphs | 1 | Use images where the text path supports them |
+| General / TutorialControllerText | 1 | Use native controller tutorial text in controller context |
+| General / AdvancedController | 1 | Enable contextual Accept/Back in Advanced |
+| Player1 / ControllerType | Auto | Auto, Xbox, PlayStation or Generic; physical button interpretation |
+| Player1 / GlyphStyle | Auto | Auto, Xbox or PlayStation; presentation only |
+| Player1 / Preset | ConsoleDefault | Console defaults for an unconfigured pad; None disables preset publication |
 
-`TrueAnalogMovement=0` forwards DirectInput without installing the movement
-hook. `Deadzone` accepts 0 through 0.5 and applies to the left stick's vector.
-`PreserveMagnitude=1` retains partial speed; `0` is unsupported and safely
-disables the hook. Controller index 0 was tested. Indices 1–9 select another
-DirectInput pad slot but are experimental. `DebugInput=1` logs sampled axes,
-angles and resolved movement slots; use it briefly because the log grows.
+Detailed traces are off by default. Older Controller settings remain supported;
+optional Player1 overrides take precedence. Advanced bindings are selected with
+the mouse; the original keyboard/controller capture remains intact. Use Esc to
+cancel editing. There is no exclusive input-device selection.
 
-## Compatibility and troubleshooting
+## Compatibility
 
-The DLL forwards the seven DirectInput 7 exports to the real Windows DLL. It
-hashes the EXE and scans executable code for one specific movement signature.
-The hook is installed only for the validated build after a unique match and
-instruction/layout checks. An unknown or incompatible build runs without this
-movement patch. If the log says `Hook: NOT installed`, check the EXE hash,
-configuration and `Pattern` line. The source project includes additional
-compatibility notes in `docs/COMPATIBILITY.md`.
+Validated `XMen2.exe` SHA-256:
+`146CD9C316EDB57A267CD73753A7CE9AF647E52AAB750D449C6B278FB4A1669B`.
 
-If the game does not start, remove the two mod files and verify the original
-installation. To report a bug, include Windows version, controller model,
-`XMen2.exe` SHA-256, the relevant `true-analog.log` lines and reproduction
-steps. Do not attach game files, saves or proprietary assets.
+SUPPORTED means the hash, unique signatures and instruction/layout guards allow
+runtime hooks. UNKNOWN/INCOMPATIBLE means no unsafe game patch is applied;
+Windows DirectInput forwarding remains available. Other PC versions are not
+claimed supported. See `docs/COMPATIBILITY.md` in the source package.
+
+## Known limitations
+
+- Gameplay is validated principally for P1. P2–P4 are experimental/unvalidated.
+- Physical PlayStation hardware and native Sony HID mapping are not validated.
+  Glyph presentation can be tested with an override; that is not hardware validation.
+- Generic uses Xbox-compatible DirectInput indices; arbitrary HID layouts may differ.
+- Advanced intentionally uses local text labels rather than inline glyphs.
+  Entering it does not globally disable dialogue/gameplay glyphs.
+- Binding selection/edit entry remains via mouse; keyboard and controller retain
+  original capture behavior. There is no controller list editor.
+- Combined DirectInput trigger axes keep the original game's limitation.
+- Another DINPUT proxy cannot simply be installed alongside this DLL.
+
+## Troubleshooting
+
+`true-analog.log` is created beside the DLL. It records version, compatibility and
+hook status; diagnostic traces are disabled. If the game fails to start, uninstall
+the two mod files and verify the original game. Report Windows version, controller
+model/connection, EXE hash, relevant log lines and reproduction steps. Do not send
+game binaries, extracted assets, saves or personal paths.
 
 ## Build from source
 
-Install [Zig 0.16.0](https://ziglang.org/download/) and run PowerShell 5.1 or
-newer on Windows:
-
-```powershell
-./build.ps1                 # zig must be on PATH
-./scripts/Package.ps1       # creates dist/XML2-True-Analog-v0.1.0.zip
-```
-
-Alternatively pass `-ZigPath` to `build.ps1`. The output is a PE32 x86
-`build/DINPUT.dll`; the build script checks its exports and imported runtimes.
-The compiler is a build tool and is not included in the release. Source code
-is MIT licensed; the release contains no game assets.
-
-Reverse-engineering reference and technical credit:
-[`SomeoneIsWorking/xmen2` at cf0def5](https://github.com/SomeoneIsWorking/xmen2/tree/cf0def5efd076e18f6333db67916bfdee336729b).
-Its code is MIT licensed. XML2 True Analog uses an independent implementation;
-no xmen2 source or game data was copied into this mod.
-
-## Optional controller core in development
-
-`build-controller.ps1` builds XML2 Modern Controller separately, including
-runtime hot-plug, device identity, player reservations and logical console
-presets, dynamic binding labels and an additional atlas of original controller
-glyphs. Use `config/modern-controller.ini` for that build. The optional build
-also needs Python with Pillow and the official resvg 0.47.0 CLI:
+On Windows, use PowerShell 7+, Zig **0.16.0**, resvg **0.47.0**, and Python with
+Pillow. The tested asset toolchain is Python **3.12.14** / Pillow **12.3.0**.
 
 ```powershell
 ./build-controller.ps1 -ZigPath ./tools/zig.exe -PythonPath ./tools/python.exe -ResvgPath ./tools/resvg.exe
+./tests/Test-Controller.ps1 -ZigPath ./tools/zig.exe
 ./tests/Test-Prompts.ps1 -ZigPath ./tools/zig.exe
-./scripts/Export-GlyphArt.ps1
+./tests/Test-Advanced.ps1 -ZigPath ./tools/zig.exe
+./tests/Test-UnknownBuild.ps1 -ZigPath ./tools/zig.exe
+./tests/Test-Release.ps1 -ZigPath ./tools/zig.exe
+./scripts/Package.ps1
+./scripts/Package.ps1 -Source
 ```
 
-These tools are build dependencies; they are not needed by the runtime DLL.
-The atlas is embedded in the DLL. See [glyph notes](docs/CONTROLLER-GLYPHS.md)
-for the retail pipeline, configuration, visual validation and known limits. See
-[controller core notes](docs/CONTROLLER-CORE.md) for current validation and
-limits. The v0.1.0 build and release package remain separate.
+Tool paths are examples; pass your installed executables. `VERSION` controls the
+modern runtime/package version. Build regenerates the embedded atlas from the
+approved SVGs and produces `build/modern-controller/DINPUT.dll` plus metadata.
+No game, Dev/Vanilla installation or parent project is needed to build/package.
+See `docs/BETA-VALIDATION.md` for evidence and `docs/SCREENSHOTS.md` for future images.
 
-The optional build also includes a contextual Advanced editor adapter, enabled
-with `General/AdvancedController=1`. See [Advanced controls](docs/ADVANCED-CONTROLLER.md)
-for native navigation, Accept/Back, mouse-selected binding edits, local text
-fallback and validation.
+## Credits
+
+Reverse-engineering reference: [SomeoneIsWorking/xmen2 at cf0def5](https://github.com/SomeoneIsWorking/xmen2/tree/cf0def5efd076e18f6333db67916bfdee336729b), MIT licensed.
+This is an independent implementation; no upstream source or game assets were copied.
+XML2 True Analog v0.1.0 remains a historical local artifact; its ZIP is not overwritten.
+
+## License
+
+MIT covers this project's original code, documentation and glyph artwork.
+No license to the game or its proprietary assets is included. See `LICENSE`.

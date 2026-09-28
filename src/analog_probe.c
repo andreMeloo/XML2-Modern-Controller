@@ -131,7 +131,7 @@ void analog_init(HMODULE self_module) {
     char message[256];
     int valid_config;
     if (InterlockedCompareExchange(&started, 1, 0)) return;
-    analog_log_event("XML2 True Analog v" XTA_VERSION "\r\n");
+    analog_log_event(XTA_PRODUCT " v" XTA_VERSION "\r\n");
     analog_identify_build(&build);
     snprintf(message, sizeof message, "XMen2.exe SHA-256: %s\r\n",
              build.sha256[0] ? build.sha256 : "unavailable");

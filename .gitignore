@@ -5,3 +5,7 @@ dist/
 *.exe
 *.dll
 *.zip
+*.pdb
+__pycache__/
+.venv/
+tools/
