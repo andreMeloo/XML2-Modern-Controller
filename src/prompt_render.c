@@ -28,6 +28,7 @@ static uintptr_t current_context;
 static unsigned current_start,current_end;
 static int current_valid;
 static unsigned draw_count;
+static unsigned sink_notes;
 static uintptr_t font_table_address=0x8161f8u;
 static _Thread_local WCHAR fallback_text[2048];
 static void log_line(const char *s) { analog_log_event(s); }
@@ -118,7 +119,25 @@ int pg_render_ready(void *context) {
 int pg_render_code(unsigned index) {
     return pg_render_active() && index<48?atlas_to_code[index%24]*256+atlas_to_code[24+index/24]:0;
 }
-const WCHAR *pg_render_safe_text(const WCHAR *s,void *owner) {
+static int usable_sink(void *writer,unsigned vertices) {
+    uintptr_t batch; unsigned slot,capacity,base,count; int valid;
+    if(!readable(writer,12)) return 0;
+    batch=*(uintptr_t *)writer;
+    if(!readable((void *)batch,0x24)) return 0;
+    slot=*(unsigned *)(batch+0x10); capacity=*(unsigned *)(batch+0xc);
+    base=*(unsigned *)(batch+0x14); count=*(unsigned *)(batch+0x20);
+    /* Retail constructor 005843A0: exactly two array pointers (+4/+8),
+       capacity +C, index +10 and emitter vtable 0069C904. Other UI passes
+       can use another sink; keep readable text in that run instead. */
+    valid=*(uintptr_t *)batch==0x69c904u && slot<2 &&
+        (uint64_t)base+count+vertices<capacity && *(uintptr_t *)(batch+4+slot*4)!=0;
+    if(!valid && sink_notes++<4) {
+        char line[220]; snprintf(line,sizeof line,"Glyph run TEXT fallback sink=%p vtable=%p slot=%u base=%u count=%u capacity=%u; renderer stays active\r\n",
+            (void *)batch,*(void **)batch,slot,base,count,capacity); log_line(line);
+    }
+    return valid;
+}
+const WCHAR *pg_render_safe_text(const WCHAR *s,void *owner,void *writer) {
     unsigned i,n=0,font=~0u,style=0,native=0,length=0; int can_render=pg_render_active();
     if(!metrics_ready || !readable(s,1024)) return s;
     if(owner && readable((char *)owner+0x2140c,4)) font=*(unsigned *)((char *)owner+0x2140c);
@@ -126,6 +145,7 @@ const WCHAR *pg_render_safe_text(const WCHAR *s,void *owner) {
     while(length<512 && s[length]) { if(s[length]<256 && code_to_atlas[s[length]]<24) native++; length++; }
     if(!native) return s;
     if(native>QUEUE_MAX-queued || length==512) can_render=0;
+    if(can_render && !usable_sink(writer,length*6)) can_render=0;
     if(can_render) return s;
     for(i=0;i<512 && s[i] && n+40<2048;i++) {
         unsigned c=s[i],index=c<256?code_to_atlas[c]:255;
@@ -149,7 +169,7 @@ int pg_render_text_begin(const WCHAR *s,void *writer,void *owner) {
     for(n=0;n<512 && s[n];n++) if(s[n]<256 && s[n]!=' ' && s[n]!='\t') {
         draws++; if(code_to_atlas[s[n]]<24) native++;
     }
-    if(n==512 || !native || native>QUEUE_MAX-queued) return 0;
+    if(n==512 || !native || native>QUEUE_MAX-queued || !usable_sink(writer,draws*6)) return 0;
     cursor=s; cursor_index=0; expected=draws; emitted=0; cursor_style=0; pending_inline=QUEUE_MAX;
     return 1;
 }
@@ -184,7 +204,7 @@ int pg_render_quad(void *writer,float x0,float y0,float x1,float y1) {
     batch=*(uintptr_t *)writer;
     if(!readable((void *)batch,0x24)) { pg_render_disable("batch layout"); return 0; }
     slot=*(unsigned *)(batch+0x10); base=*(unsigned *)(batch+0x14); count=*(unsigned *)(batch+0x20);
-    if(slot>=16 || !readable((void *)(batch+4+slot*4),4)) { pg_render_disable("vertex array slot"); return 0; }
+    if(slot>=2 || !readable((void *)(batch+4+slot*4),4)) { pg_render_disable("vertex array slot changed within accepted text run"); return 0; }
     array=*(uintptr_t *)(batch+4+slot*4);
     if(!array || !isfinite(x0) || !isfinite(x1) || !isfinite(y0) || !isfinite(y1)) { pg_render_disable("quad coordinates"); return 0; }
     pending_inline=queued;

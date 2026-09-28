@@ -4,7 +4,7 @@
 int pg_render_ready(void *context);
 int pg_render_code(unsigned atlas_index);
 int pg_render_text_begin(const WCHAR *string,void *writer,void *owner);
-const WCHAR *pg_render_safe_text(const WCHAR *string,void *owner);
+const WCHAR *pg_render_safe_text(const WCHAR *string,void *owner,void *writer);
 void pg_render_text_end(void);
 int pg_render_quad(void *writer,float x0,float y0,float x1,float y1);
 void pg_render_batch(void *context,unsigned type,int count,int start);

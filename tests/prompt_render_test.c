@@ -51,7 +51,8 @@ int main(void) {
     assert(pg_render_code(999)==0);
     token=pg_render_code(24+MC_SOUTH); assert(token);
     wide[0]=(WCHAR)(token&255); wide[1]=(WCHAR)(token>>8);
-    *(uintptr_t *)(batch+4)=0x12345678; *(unsigned *)(batch+0x14)=10;
+    *(uintptr_t *)batch=0x69c904;
+    *(uintptr_t *)(batch+4)=0x12345678; *(unsigned *)(batch+0xc)=4096; *(unsigned *)(batch+0x14)=10;
     writer[0]=(uintptr_t)batch; writer[2]=0xffabcdef;
     assert(pg_render_text_begin(wide,writer,owner));
     assert(pg_render_quad(writer,0,0,0,0));
@@ -88,9 +89,18 @@ int main(void) {
     assert(pg_render_quad(writer,0,0,0,0)); assert(pg_render_quad(writer,10,30,30,10));
     assert(pg_render_quad(writer,0,0,0,0)); assert(pg_render_quad(writer,40,30,60,10));
     pg_render_text_end(); assert(queued==2 && queue[0].atlas==MC_NORTH && queue[1].atlas==24+MC_NORTH);
+    queued=0;
+    *(unsigned *)(batch+0x10)=~0u;
+    assert(!wcscmp(pg_render_safe_text(wide,owner,writer),L"[Y][Triangle]"));
+    assert(!pg_render_text_begin(wide,writer,owner) && pg_render_active());
+    *(unsigned *)(batch+0x10)=0;
+    *(uintptr_t *)batch=0x69c8e4;
+    assert(!wcscmp(pg_render_safe_text(wide,owner,writer),L"[Y][Triangle]"));
+    assert(pg_render_active());
+    *(uintptr_t *)batch=0x69c904;
     /* Unknown/corrupt render conditions become textual names, never private tokens. */
     pg_render_disable("fixture missing atlas");
-    assert(!wcscmp(pg_render_safe_text(wide,owner),L"[Y][Triangle]"));
+    assert(!wcscmp(pg_render_safe_text(wide,owner,writer),L"[Y][Triangle]"));
     assert(!pg_render_code(4));
     VirtualFree(fonts,0,MEM_RELEASE);
     puts("PASS: retail font header offset; 26 empty cells; mixed styles; upright UV/color/plane; inline visual gap; vertex-range matching; alpha setup; full state restore; missing-atlas text fallback");

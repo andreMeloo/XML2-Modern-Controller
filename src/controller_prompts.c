@@ -159,11 +159,12 @@ static unsigned current_action;
 static int in_label,in_text;
 static unsigned row_seen[MC_ACTIONS],action_seen[256],text_notes,quad_notes,draw_notes,glyph_run_seen[16],glyph_run_count;
 static const char *__attribute__((cdecl)) label(unsigned action) {
-    const char *result; current_action=action; in_label++; selected_player=-1;
-    result=label_original(action); in_label--;
+    const char *result; int presentation=(uintptr_t)__builtin_return_address(0)==exe+0xbd73eu;
+    current_action=action; if(presentation) in_label++; selected_player=-1;
+    result=label_original(action); if(presentation) in_label--;
     if(tracing && action<256 && !action_seen[action]++ && readable(result,64))
         note("LABEL action=%u caller=%p original=%.60s",action,__builtin_return_address(0),result);
-    if(dynamic && selected_player>=0) {
+    if(dynamic && presentation && selected_player>=0) {
         McControl control; PgStyle style=pg_effective_style(styles[selected_player],selected_type);
         if(pg_native_control(selected_binding.code,selected_type,&control)) {
             int glyph=glyphs?pg_render_code((style==PG_PLAYSTATION?24u:0u)+(unsigned)control):0;
@@ -240,7 +241,7 @@ static void __attribute__((thiscall)) text(void *owner,const WCHAR *string,void 
         note("TEXT stack_string=%p writer=%p xy=%d,%d style=%p scale=%p sample=%s",string,writer,x,y,style,scale,sample);
     }
     in_text=bracket;
-    if(glyphs) string=pg_render_safe_text(string,owner);
+    if(glyphs) string=pg_render_safe_text(string,owner,writer);
     if(glyphs) pg_render_text_begin(string,writer,owner);
     text_original(owner,string,writer,x,y,style,pen,scale);
     if(glyphs) pg_render_text_end();

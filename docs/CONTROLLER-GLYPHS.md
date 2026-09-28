@@ -33,6 +33,24 @@ and `true-analog.ini`). Startup armed the movement and prompt hooks, validated
 the active tutorial callsite and loaded the atlas. The final visual route is
 pending. No Vanilla/source write or stable ZIP replacement was performed.
 
+Follow-up: opening controller configuration disabled the first candidate's
+glyph renderer (`vertex array slot`); the user also reported no gamepad navigation
+in the advanced binding screen. The placement adjustment was not visibly
+effective. These are unresolved acceptance items. A subsequent static check of
+`005843A0` confirmed the emitter's exact two-pointer array layout, capacity and
+vtable. The follow-up candidate checks that sink before a whole text run and
+uses local readable-name fallback for unfamiliar sinks, leaving other glyphs
+active. Owned fixtures passed the invalid-index and alternate-vtable cases.
+Label substitution is now scoped to the visual token caller `004BD73E`, keeping
+other label consumers unchanged. A prompts-OFF Dev comparison is being used to
+determine whether advanced-menu navigation differs from the Phase 1 behavior;
+the user confirmed that both navigation and button mapping still fail with all
+prompt hooks and the atlas disabled. That comparison retained the Phase 1 input
+core; it establishes that the issue also exists without this prompt module, but
+does not establish how an entirely unmodified executable behaves. Advanced-menu
+controller support remains a separate unresolved limitation. The follow-up
+render correction still requires an ON runtime visit to that screen and back.
+
 ## Retail boundary
 
 Supported PE32 x86 EXE SHA-256:
