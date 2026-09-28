@@ -40,7 +40,8 @@ typedef enum {
     MC_LEFT_TRIGGER, MC_RIGHT_TRIGGER, MC_RIGHT_SHOULDER,
     MC_DPAD_UP, MC_DPAD_DOWN, MC_DPAD_LEFT, MC_DPAD_RIGHT,
     MC_RIGHT_STICK, MC_START, MC_BACK,
-    MC_RY_NEG, MC_RY_POS, MC_RX_NEG, MC_RX_POS
+    MC_RY_NEG, MC_RY_POS, MC_RX_NEG, MC_RX_POS,
+    MC_LEFT_SHOULDER, MC_LEFT_STICK, MC_CONTROL_COUNT
 } McControl;
 typedef struct { unsigned action; McControl control; } McPresetAction;
 typedef struct { unsigned kind, code; } McBinding;

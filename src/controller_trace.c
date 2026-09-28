@@ -6,6 +6,7 @@
 #include <cfgmgr32.h>
 #include "controller_core.h"
 #include "controller_model.h"
+#include "controller_prompts.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -254,6 +255,15 @@ static HRESULT WINAPI get_state(void *object,DWORD size,void *out) {
         observe_inventory();
     }
     hr=((StateFn)it->original[9])(it->object,size,out);
+    if(SUCCEEDED(hr) && it->version==8 && mc_prompts_enabled()) {
+        uintptr_t main=main_manager();
+        if(main && out==(void *)(main+0x25e4) && it->keyboard) mc_prompts_state(0,-1,out,size);
+        else if(main && out==(void *)(main+0x4bc) && it->mouse) mc_prompts_state(1,-1,out,size);
+        else if(main && !it->keyboard && !it->mouse) {
+            unsigned s;
+            for(s=0;s<MC_GAME_SLOTS;s++) if(out==(void *)(main+0x4f0+s*0x110)) { mc_prompts_state(2,(int)s,out,size); break; }
+        }
+    }
     if (!it->saw_state || it->last_state!=hr) {
         event("%s api=DI%u role=%s object=%p bytes=%lu hr=0x%08lX caller=%p",
               FAILED(hr)?"DEVICE LOST":"DEVICE STATE AVAILABLE",it->version,role(it),object,
@@ -720,7 +730,7 @@ static void pump_controller_core(void *buffer,DWORD size,uintptr_t caller) {
     uintptr_t manager;
     DWORD now;
     unsigned lost;
-    if (!hotplug_enabled || !refresh_validated || !observed_main_refresh || refreshing ||
+    if ((!hotplug_enabled && !mc_prompts_enabled()) || !refresh_validated || !observed_main_refresh || refreshing ||
         size!=256 || caller!=image_base+0x228621u) return;
     now=GetTickCount();
     if (next_core_check && (LONG)(now-next_core_check)<0) return;
@@ -750,7 +760,8 @@ static void pump_controller_core(void *buffer,DWORD size,uintptr_t caller) {
         lost=detached_mask; detached_mask=0;
         if (!core_configured) update_model(&inventory);
         applied_generation=generation;
-        refresh_main(&inventory,lost);
+        if(hotplug_enabled) refresh_main(&inventory,lost);
+        else update_model(&inventory);
     }
     /* This checks bounded data only, no allocation, enumeration or frame logs. */
     apply_console_defaults();
@@ -823,7 +834,8 @@ void controller_core_prepare(HMODULE module) {
     lstrcpyW(name+1,L"true-analog.ini");
     trace_enabled=GetPrivateProfileIntW(L"General",L"ControllerTrace",0,path)==1;
     hotplug_enabled=GetPrivateProfileIntW(L"General",L"HotPlug",0,path)==1;
-    if (!trace_enabled && !hotplug_enabled) return;
+    if (!trace_enabled && !hotplug_enabled && GetPrivateProfileIntW(L"General",L"DynamicPrompts",0,path)!=1 &&
+        GetPrivateProfileIntW(L"General",L"PromptTrace",0,path)!=1) return;
     event("GAME START XML2 Modern Controller core; HotPlug=%s",hotplug_enabled?"ON":"OFF");
     if (!analog_identify_build(&build) || build.status!=XTA_SUPPORTED) {
         event("TRACE REFUSED unsupported build; no IAT or COM changes"); return;
@@ -835,6 +847,7 @@ void controller_core_prepare(HMODULE module) {
         event("HOTPLUG REFUSED refresh/signature profile changed; observer only"); hotplug_enabled=0;
     }
     mc_core_init(&core);
+    mc_prompts_prepare(image_base,path,&core);
     {
         unsigned player;
         for (player=0;player<MC_PLAYERS;player++) {

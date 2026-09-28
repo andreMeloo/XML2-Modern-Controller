@@ -1,8 +1,12 @@
-param([string]$ZigPath)
+param([string]$ZigPath,[string]$PythonPath,[string]$ResvgPath)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
+if (-not $PythonPath) { $PythonPath = (Get-Command python -ErrorAction Stop).Source }
+if (-not $ResvgPath) { $ResvgPath = (Get-Command resvg -ErrorAction Stop).Source }
+& $PythonPath (Join-Path $root 'scripts/build-glyphs.py') --resvg $ResvgPath
+if ($LASTEXITCODE -ne 0) { throw 'Owned glyph atlas build failed.' }
 if (-not $ZigPath) {
     if ($env:ZIG_EXE) { $ZigPath = $env:ZIG_EXE }
     else {
@@ -20,9 +24,13 @@ $env:ZIG_GLOBAL_CACHE_DIR = Join-Path $root 'build/zig-cache'
 try {
     & $ZigPath cc -target x86-windows-gnu -std=c11 -O2 -Wall -Wextra -Werror `
         -I (Join-Path $root 'include') -shared -o $output `
+        -I (Join-Path $root 'build/modern-controller/glyphs') `
         (Join-Path $root 'src/controller_proxy.c') `
         (Join-Path $root 'src/controller_trace.c') `
         (Join-Path $root 'src/controller_model.c') `
+        (Join-Path $root 'src/controller_prompts.c') `
+        (Join-Path $root 'src/prompt_model.c') `
+        (Join-Path $root 'src/prompt_render.c') `
         (Join-Path $root 'src/controller_forward.S') `
         (Join-Path $root 'src/compat.c') `
         (Join-Path $root 'src/controller_analog.c') `

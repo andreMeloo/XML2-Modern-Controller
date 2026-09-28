@@ -85,6 +85,18 @@ no xmen2 source or game data was copied into this mod.
 
 `build-controller.ps1` builds XML2 Modern Controller separately, including
 runtime hot-plug, device identity, player reservations and logical console
-presets. Use `config/modern-controller.ini` for that build. See
+presets, dynamic binding labels and an additional atlas of original controller
+glyphs. Use `config/modern-controller.ini` for that build. The optional build
+also needs Python with Pillow and the official resvg 0.47.0 CLI:
+
+```powershell
+./build-controller.ps1 -ZigPath ./tools/zig.exe -PythonPath ./tools/python.exe -ResvgPath ./tools/resvg.exe
+./tests/Test-Prompts.ps1 -ZigPath ./tools/zig.exe
+./scripts/Export-GlyphArt.ps1
+```
+
+These tools are build dependencies; they are not needed by the runtime DLL.
+The atlas is embedded in the DLL. See [glyph notes](docs/CONTROLLER-GLYPHS.md)
+for the retail pipeline, configuration, visual validation and known limits. See
 [controller core notes](docs/CONTROLLER-CORE.md) for current validation and
 limits. The v0.1.0 build and release package remain separate.

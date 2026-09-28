@@ -24,7 +24,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Unknown-build forwarding failed.' }
     $text = Get-Content -LiteralPath $log -Raw
     if ($text -notmatch 'TRACE REFUSED unsupported build; no IAT or COM changes' -or
-        $text -match 'CORE ARMED|Hook: Installed|HOTPLUG MAIN REFRESH') {
+        $text -match 'CORE ARMED|Hook: Installed|HOTPLUG MAIN REFRESH|Prompts.*ARMED|Glyph atlas LOADED') {
         throw 'Unknown build did not fail closed.'
     }
     Write-Output 'PASS: unsupported build refuses controller IAT, COM and gameplay changes.'
