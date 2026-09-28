@@ -7,6 +7,7 @@
 #include "controller_core.h"
 #include "controller_model.h"
 #include "controller_prompts.h"
+#include "advanced_menu.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -71,6 +72,8 @@ static volatile LONG observer_started;
 static HINSTANCE observer_instance;
 static unsigned previous_binding_hash[4];
 static int hotplug_enabled, refresh_validated, refreshing;
+static uintptr_t auxiliary_refreshing,auxiliary_applied,auxiliary_factory;
+static LONG auxiliary_generation;
 static Inventory refresh_inventory;
 static volatile LONG inventory_generation;
 static LONG applied_generation;
@@ -176,7 +179,9 @@ static HRESULT WINAPI enumerate(void *object,DWORD type,LPDIENUMDEVICESCALLBACKA
     /* Reuse the game's entire refresh routine and callback on its input thread.
        This one refresh reads a worker snapshot instead of enumerating Windows
        on the frame thread. Ordinary game/menu enumerations still forward. */
-    if (refreshing && reference==(void *)game_manager && it==game_directinput8 &&
+    if (((refreshing && reference==(void *)game_manager && it==game_directinput8) ||
+         (auxiliary_refreshing && reference==(void *)auxiliary_refreshing &&
+          it==find_interface(*(void **)(auxiliary_refreshing+0x27e4)))) &&
         type==DI8DEVCLASS_GAMECTRL && flags==DIEDFL_ATTACHEDONLY &&
         (uintptr_t)callback==image_base+0x228E00u) {
         unsigned i;
@@ -255,6 +260,10 @@ static HRESULT WINAPI get_state(void *object,DWORD size,void *out) {
         observe_inventory();
     }
     hr=((StateFn)it->original[9])(it->object,size,out);
+    if(SUCCEEDED(hr) && it->version==8)
+        mc_advanced_state(it->keyboard?0:it->mouse?1:2,out,size,(uintptr_t)__builtin_return_address(0),&it->instance);
+    else if(FAILED(hr) && it->version==8 && !it->keyboard && !it->mouse && size==sizeof(DIJOYSTATE2))
+        mc_advanced_lost(&it->instance);
     if(SUCCEEDED(hr) && it->version==8 && mc_prompts_enabled()) {
         uintptr_t main=main_manager();
         if(main && out==(void *)(main+0x25e4) && it->keyboard) mc_prompts_state(0,-1,out,size);
@@ -730,7 +739,7 @@ static void pump_controller_core(void *buffer,DWORD size,uintptr_t caller) {
     uintptr_t manager;
     DWORD now;
     unsigned lost;
-    if ((!hotplug_enabled && !mc_prompts_enabled()) || !refresh_validated || !observed_main_refresh || refreshing ||
+    if ((!hotplug_enabled && !mc_prompts_enabled() && !mc_advanced_enabled()) || !refresh_validated || !observed_main_refresh || refreshing ||
         size!=256 || caller!=image_base+0x228621u) return;
     now=GetTickCount();
     if (next_core_check && (LONG)(now-next_core_check)<0) return;
@@ -762,6 +771,31 @@ static void pump_controller_core(void *buffer,DWORD size,uintptr_t caller) {
         applied_generation=generation;
         if(hotplug_enabled) refresh_main(&inventory,lost);
         else update_model(&inventory);
+    }
+    /* The Advanced list owns a second native input manager. Refresh it only
+       on entry/inventory changes, using the same worker snapshot and original
+       callback. No Windows enumeration is introduced on the UI frame thread. */
+    if(hotplug_enabled) {
+        uintptr_t auxiliary=mc_advanced_manager(),factory;
+        Interface *input;
+        if(auxiliary && auxiliary!=manager) {
+            factory=*(uintptr_t *)(auxiliary+0x27e4); input=find_interface((void *)factory);
+            if(input && !input->device && input->version==8 &&
+               (auxiliary!=auxiliary_applied || factory!=auxiliary_factory || auxiliary_generation!=applied_generation)) {
+                typedef void (__attribute__((thiscall)) *AdvancedRefreshFn)(void *,int);
+                unsigned slot,j;
+                for(slot=0;slot<MC_GAME_SLOTS;slot++) {
+                    GUID *guid=(void *)(auxiliary+0x27e8+slot*16); int present=0;
+                    for(j=0;j<refresh_inventory.count;j++) if(IsEqualGUID(guid,&refresh_inventory.device[j].guidInstance)) present=1;
+                    if(!present) neutral_slot(auxiliary,slot);
+                }
+                auxiliary_refreshing=auxiliary;
+                ((AdvancedRefreshFn)(image_base+0x228e20))((void *)auxiliary,1);
+                auxiliary_refreshing=0;
+                auxiliary_applied=auxiliary; auxiliary_factory=factory; auxiliary_generation=applied_generation;
+                event("HOTPLUG ADVANCED REFRESH generation=%ld manager=%p snapshot_records=%u",(long)applied_generation,(void *)auxiliary,refresh_inventory.count);
+            }
+        } else { auxiliary_applied=0; auxiliary_factory=0; auxiliary_generation=0; }
     }
     /* This checks bounded data only, no allocation, enumeration or frame logs. */
     apply_console_defaults();
@@ -835,7 +869,9 @@ void controller_core_prepare(HMODULE module) {
     trace_enabled=GetPrivateProfileIntW(L"General",L"ControllerTrace",0,path)==1;
     hotplug_enabled=GetPrivateProfileIntW(L"General",L"HotPlug",0,path)==1;
     if (!trace_enabled && !hotplug_enabled && GetPrivateProfileIntW(L"General",L"DynamicPrompts",0,path)!=1 &&
-        GetPrivateProfileIntW(L"General",L"PromptTrace",0,path)!=1) return;
+        GetPrivateProfileIntW(L"General",L"PromptTrace",0,path)!=1 &&
+        GetPrivateProfileIntW(L"General",L"AdvancedTrace",0,path)!=1 &&
+        GetPrivateProfileIntW(L"General",L"AdvancedController",0,path)!=1) return;
     event("GAME START XML2 Modern Controller core; HotPlug=%s",hotplug_enabled?"ON":"OFF");
     if (!analog_identify_build(&build) || build.status!=XTA_SUPPORTED) {
         event("TRACE REFUSED unsupported build; no IAT or COM changes"); return;
@@ -868,6 +904,7 @@ void controller_core_prepare(HMODULE module) {
                 event("TRUE ANALOG DEFERRED player=%u multiplayer resolver path not hardware-validated",player+1);
         }
     }
+    mc_advanced_prepare(image_base,path,&core);
     event("REFRESH PROFILE %s entry=%p callback=%p; True Analog core remains P1 validated",
           refresh_validated?"VALIDATED":"REFUSED",(void *)(image_base+0x228E20u),(void *)(image_base+0x228E00u));
     if (!arm_factory_observer()) event("TRACE REFUSED factory observer unavailable");

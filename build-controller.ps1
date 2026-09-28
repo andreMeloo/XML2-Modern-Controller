@@ -29,6 +29,7 @@ try {
         (Join-Path $root 'src/controller_trace.c') `
         (Join-Path $root 'src/controller_model.c') `
         (Join-Path $root 'src/controller_prompts.c') `
+        (Join-Path $root 'src/advanced_menu.c') `
         (Join-Path $root 'src/prompt_model.c') `
         (Join-Path $root 'src/prompt_render.c') `
         (Join-Path $root 'src/controller_forward.S') `

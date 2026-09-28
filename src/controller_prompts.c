@@ -269,6 +269,15 @@ static void __attribute__((thiscall)) update(void *context,unsigned start,int co
     if(glyphs) pg_render_submit(context);
 }
 int mc_prompts_enabled(void) { return armed && dynamic; }
+int mc_prompts_controller_source(unsigned player) { return player<MC_PLAYERS && sources[player].source==PG_CONTROLLER; }
+const char *mc_prompts_menu_binding(unsigned code,McType type,unsigned player) {
+    McControl control;
+    if(!mc_prompts_enabled() || player>=MC_PLAYERS || !mc_prompts_controller_source(0) ||
+       !pg_native_control(code,type,&control)) return NULL;
+    /* Advanced's observed 006A4C4C PC text writer is incompatible with inline
+       sprites. Return this cell's real binding in the selected glyph family. */
+    return pg_control_name(control,pg_effective_style(styles[player],type));
+}
 static void source_changed(unsigned player) {
     if(tracing) note("SOURCE player=%u LastInputSource=%s",player+1,sources[player].source==PG_CONTROLLER?"Controller":"KeyboardMouse");
 }
