@@ -1,31 +1,25 @@
-# GitHub publication setup (not performed here)
+# GitHub publication
 
-- Repository name: **XML2-Modern-Controller**
-- Description: Modern controller support for X-Men Legends II on PC: true analog
-  movement, hot-plug, reconnect and dynamic Xbox/PlayStation button prompts.
-- Default branch: **main**
-- Release tag: **v0.5.0-beta.1**
-- Topics: `x-men-legends-ii`, `xml2`, `modding`, `controller`, `directinput`,
-  `true-analog`, `xbox-controller`, `playstation-controller`.
+Official repository: https://github.com/andreMeloo/XML2-Modern-Controller
+Default branch: main. Release: v0.5.0-beta.2 (prerelease).
 
-Use the source ZIP's root as the standalone repository. It contains only the
-public project; do not publish a parent modding workspace or game installation.
-Initialize its own Git history/main branch when creating the repository, and
-record the source freeze/preparation commits in release provenance. The local
-workspace tag is preparation provenance, not a claim that GitHub already exists.
+Run the build and all five suites in README. Audit both Package.ps1 outputs,
+verify final gameplay before publication, and attach these three artifacts:
 
-Before publishing: review the issue template, MIT license and limitations; add
-real screenshots from `screenshots/README.md`; replace placeholders in POSTING_COPY.
-Attach the binary ZIP, source ZIP and SHA256SUMS.txt to the release. Use
-RELEASE_NOTES_v0.5.0-beta.1.md as its description.
+- XML2-Modern-Controller-v0.5.0-beta.2.zip
+- XML2-Modern-Controller-v0.5.0-beta.2-source.zip
+- SHA256SUMS.txt
 
-For a rebuilt release, run both Package commands in README, then generate hashes
-only after the final archives exist:
+Use docs/RELEASE_NOTES_v0.5.0-beta.2.md for the release body. The binary ZIP contains
+only DINPUT.dll, true-analog.ini, README.md and LICENSE. The source ZIP contains
+only project-owned source/docs/art, not generated/game files or investigation data.
+
+Generate hashes only after final packaging:
 
 ```powershell
 $releaseFiles = @('build/modern-controller/DINPUT.dll',
-  'dist/XML2-Modern-Controller-v0.5.0-beta.1.zip',
-  'dist/XML2-Modern-Controller-v0.5.0-beta.1-source.zip')
+  'dist/XML2-Modern-Controller-v0.5.0-beta.2.zip',
+  'dist/XML2-Modern-Controller-v0.5.0-beta.2-source.zip')
 $lines = foreach ($file in $releaseFiles) {
   '{0}  {1}' -f (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLowerInvariant(),
     [IO.Path]::GetFileName($file)
@@ -33,6 +27,6 @@ $lines = foreach ($file in $releaseFiles) {
 $lines | Set-Content -LiteralPath dist/SHA256SUMS.txt -Encoding ascii
 ```
 
-Checksums are separate release artifacts, excluded from the source archive to
-avoid self-referential archive hashes. Do not reuse hashes from older candidates.
-No remote, push, online release or community post is part of local preparation.
+Verify the published download against these checksums. Checksums are a separate
+release artifact and are not included in the source ZIP. Existing beta.1 and
+historical True Analog releases remain unchanged.

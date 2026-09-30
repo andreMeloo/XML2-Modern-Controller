@@ -16,7 +16,6 @@ static GlyphQuad queue[QUEUE_MAX];
 static unsigned queued;
 static IDirect3DDevice8 *device;
 static IDirect3DTexture8 *texture;
-static DWORD state_block;
 static unsigned char code_to_atlas[256],atlas_to_code[48];
 static int metrics_ready,failed;
 static const WCHAR *cursor;
@@ -223,14 +222,18 @@ static HRESULT sprite(GlyphQuad *q) {
     return IDirect3DDevice8_DrawPrimitiveUP(device,D3DPT_TRIANGLELIST,2,v,sizeof(Vertex));
 }
 void pg_render_submit(void *context) {
-    uintptr_t array; unsigned i,matching=0; HRESULT hr=S_OK;
+    uintptr_t array; unsigned i,matching=0; HRESULT hr=S_OK,restore_hr,delete_hr; DWORD state_block=0xffffffffu;
     if(!current_valid || current_context!=(uintptr_t)context || !queued || !pg_render_active()) return;
     array=*(uintptr_t *)((char *)context+0x1f0);
     for(i=0;i<queued;i++) if(queue[i].array==array && queue[i].vertex>=current_start && queue[i].vertex+6<=current_end) matching++;
     if(!matching) return;
-    if(!state_block) hr=IDirect3DDevice8_CreateStateBlock(device,D3DSBT_ALL,&state_block);
-    else hr=IDirect3DDevice8_CaptureStateBlock(device,state_block);
-    if(FAILED(hr)) { pg_render_disable("state capture"); return; }
+    /* Experimental: a fresh snapshot belongs only to this submission.
+       CreateStateBlock captures the current state; no cached token survives. */
+    hr=IDirect3DDevice8_CreateStateBlock(device,D3DSBT_ALL,&state_block);
+    if(FAILED(hr)) {
+        char line[160]; snprintf(line,sizeof line,"Glyph stateblock CREATE FAILED hr=0x%08lX; no owned block\r\n",(unsigned long)hr);
+        log_line(line); pg_render_disable("state capture"); return;
+    }
 #define SET(call) do { if(SUCCEEDED(hr)) hr=(call); } while(0)
     SET(IDirect3DDevice8_SetVertexShader(device,D3DFVF_XYZ|D3DFVF_DIFFUSE|D3DFVF_TEX1));
     SET(IDirect3DDevice8_SetPixelShader(device,0));
@@ -265,9 +268,16 @@ void pg_render_submit(void *context) {
             memmove(queue+i,queue+i+1,(queued-i)*sizeof *queue);
         } else i++;
     }
-    if(FAILED(IDirect3DDevice8_ApplyStateBlock(device,state_block))) { pg_render_disable("state restore"); return; }
-    if(FAILED(hr)) { pg_render_disable("D3D8 glyph submission"); return; }
-    if(draw_count++<6) { char line[160]; snprintf(line,sizeof line,"Glyph batch SUBMITTED quads=%u array=%p range=%u..%u state_restored=1\r\n",matching,(void *)array,current_start,current_end); log_line(line); }
+    /* Every successful creation reaches both operations, even when a SET
+       or DrawPrimitiveUP failed. Deletion is attempted after restore failure. */
+    restore_hr=IDirect3DDevice8_ApplyStateBlock(device,state_block);
+    delete_hr=IDirect3DDevice8_DeleteStateBlock(device,state_block);
+    if(FAILED(hr) || FAILED(restore_hr) || FAILED(delete_hr)) {
+        char line[240]; snprintf(line,sizeof line,"Glyph stateblock FAILURE token=%08lX draw=0x%08lX apply=0x%08lX delete=0x%08lX\r\n",
+            (unsigned long)state_block,(unsigned long)hr,(unsigned long)restore_hr,(unsigned long)delete_hr); log_line(line);
+        pg_render_disable(FAILED(delete_hr)?"state deletion":FAILED(restore_hr)?"state restore":"D3D8 glyph submission"); return;
+    }
+    if(draw_count++<6) { char line[220]; snprintf(line,sizeof line,"Glyph batch SUBMITTED quads=%u array=%p range=%u..%u state_restored=1 state_deleted=1 lifecycle=per-submit\r\n",matching,(void *)array,current_start,current_end); log_line(line); }
 #undef SET
 }
 void pg_render_batch_end(void) { current_valid=0; current_context=0; }

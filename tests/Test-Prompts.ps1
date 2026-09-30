@@ -23,6 +23,11 @@ try {
         (Join-Path $PSScriptRoot 'tutorial_gate_test.c') (Join-Path $root 'src/prompt_model.c') `
         (Join-Path $root 'src/prompt_render.c')
     if ($LASTEXITCODE -ne 0) { throw 'Tutorial gate ABI test build failed.' }
+    $stateblockOutput = Join-Path $root 'build/tests/prompt-stateblock-test.exe'
+    & $ZigPath cc -target x86-windows-gnu -std=c11 -O2 -Wall -Wextra -Werror `
+        -I (Join-Path $root 'include') -I (Join-Path $root 'build/modern-controller/glyphs') -o $stateblockOutput `
+        (Join-Path $PSScriptRoot 'prompt_stateblock_test.c') (Join-Path $root 'src/prompt_model.c')
+    if ($LASTEXITCODE -ne 0) { throw 'State-block lifecycle test build failed.' }
 } finally { [Environment]::SetEnvironmentVariable('ZIG_GLOBAL_CACHE_DIR', $previousCache, 'Process') }
 & $output
 if ($LASTEXITCODE -ne 0) { throw 'Prompt model test failed.' }
@@ -30,3 +35,6 @@ if ($LASTEXITCODE -ne 0) { throw 'Prompt model test failed.' }
 if ($LASTEXITCODE -ne 0) { throw 'Prompt render test failed.' }
 & $tutorialOutput
 if ($LASTEXITCODE -ne 0) { throw 'Tutorial gate ABI test failed.' }
+
+& $stateblockOutput
+if ($LASTEXITCODE -ne 0) { throw 'State-block lifecycle regression failed.' }

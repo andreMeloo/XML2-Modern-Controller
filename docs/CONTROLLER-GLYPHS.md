@@ -269,3 +269,12 @@ References: independent implementation after reading the MIT
 and tutorial routing notes. No upstream code or game assets copied.
 [resvg release](https://github.com/linebender/resvg/releases/tag/v0.47.0),
 [MIT license](https://github.com/linebender/resvg/blob/v0.47.0/LICENSE-MIT).
+
+
+## Beta.2 state-block lifecycle update
+
+The original implementation retained a D3D8 state block between submissions.
+Beta.2 captures a fresh block per matching submission, restores the game state,
+and deletes it before returning, checking all lifecycle HRESULTs. It adds no
+Reset hook or renderer conversion. See [lifecycle validation](STATEBLOCK-FIX.md)
+for the tested minimize/return issue, error paths and remaining limitations.

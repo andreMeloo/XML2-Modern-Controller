@@ -5,13 +5,14 @@
 void analog_log_event(const char *s) { fputs(s,stdout); }
 typedef struct { DWORD fvf,shader,rs[256],tss[8][32]; void *tex; } State;
 static State gpu,snapshot;
-static int submissions,refuse_capture;
+static int submissions,refuse_capture,deleted_blocks;
 static Vertex submitted[6];
 static HRESULT WINAPI create_block(IDirect3DDevice8 *d,D3DSTATEBLOCKTYPE t,DWORD *out) {
     (void)d; assert(t==D3DSBT_ALL); *out=7; snapshot=gpu; return refuse_capture?E_FAIL:S_OK;
 }
 static HRESULT WINAPI capture(IDirect3DDevice8 *d,DWORD t) { (void)d; assert(t==7); snapshot=gpu; return refuse_capture?E_FAIL:S_OK; }
 static HRESULT WINAPI restore(IDirect3DDevice8 *d,DWORD t) { (void)d; assert(t==7); gpu=snapshot; return S_OK; }
+static HRESULT WINAPI delete_block(IDirect3DDevice8 *d,DWORD t) { (void)d; assert(t==7); deleted_blocks++; return S_OK; }
 static HRESULT WINAPI fvf(IDirect3DDevice8 *d,DWORD v) { (void)d; gpu.fvf=v; return S_OK; }
 static HRESULT WINAPI shader(IDirect3DDevice8 *d,DWORD v) { (void)d; gpu.shader=v; return S_OK; }
 static HRESULT WINAPI render_state(IDirect3DDevice8 *d,D3DRENDERSTATETYPE t,DWORD v) { (void)d; gpu.rs[t]=v; return S_OK; }
@@ -24,7 +25,7 @@ static HRESULT WINAPI submit(IDirect3DDevice8 *d,D3DPRIMITIVETYPE type,UINT n,co
     assert(gpu.rs[D3DRS_ALPHABLENDENABLE] && gpu.rs[D3DRS_SRCBLEND]==D3DBLEND_SRCALPHA);
     assert(gpu.tex==texture); memcpy(submitted,vertices,sizeof submitted); submissions++; return S_OK;
 }
-static IDirect3DDevice8Vtbl vtable={.CreateStateBlock=create_block,.CaptureStateBlock=capture,.ApplyStateBlock=restore,
+static IDirect3DDevice8Vtbl vtable={.CreateStateBlock=create_block,.CaptureStateBlock=capture,.ApplyStateBlock=restore,.DeleteStateBlock=delete_block,
     .SetVertexShader=fvf,.SetPixelShader=shader,.SetRenderState=render_state,.SetTextureStageState=stage_state,
     .SetTexture=tex,.DrawPrimitiveUP=submit};
 static IDirect3DDevice8 mock={&vtable};
@@ -65,7 +66,7 @@ int main(void) {
     *(uintptr_t *)(context+0x1f0)=0x12345678;
     memset(&gpu,0x19,sizeof gpu); before=gpu;
     pg_render_batch(context,4,10,10); pg_render_submit(context); pg_render_batch_end();
-    assert(submissions==1 && queued==0 && !memcmp(&gpu,&before,sizeof gpu));
+    assert(submissions==1 && deleted_blocks==1 && queued==0 && !memcmp(&gpu,&before,sizeof gpu));
     assert(submitted[0].x==10 && submitted[0].y==0 && submitted[0].z==30);
     assert(submitted[2].x==10 && submitted[2].z==20);
     assert(submitted[0].color==0xffabcdef);

@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.5.0-beta.2
+
+### Fixed
+
+- Direct3D 8 glyph state blocks now live for one submission: capture on creation,
+  draw, restore, then delete. Previously the block persisted between frames.
+- Check creation/restoration/deletion HRESULTs and attempt deletion even after
+  drawing or restoration errors; log failures and disable glyph rendering safely.
+- Addressed the reported minimize/return failure after glyph display on the tested
+  setup. Other game builds, drivers and focus-related failures are not guaranteed.
+
+### Validation
+
+- Added state-block lifecycle and error-path regression coverage.
+- Glyph artwork, bindings, analog movement and hot-plug logic are unchanged.
+
+
 ## 0.5.0-beta.1
 
 ### Added

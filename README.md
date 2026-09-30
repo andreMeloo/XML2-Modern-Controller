@@ -1,6 +1,6 @@
 # XML2 Modern Controller
 
-**v0.5.0-beta.1 — Public Beta**
+**v0.5.0-beta.2 — Public Beta**
 
 Modern controller support for X-Men Legends II on PC, including true 360°
 analog movement, radial deadzone, hot-plug, reconnect and dynamic
@@ -37,6 +37,12 @@ corrects that movement logic in memory, retaining the stick's angle and magnitud
 
 Windows 10 or later is targeted; Windows 10 was tested. The DLL is **PE32 x86**
 and uses system DirectInput and the Universal C Runtime.
+
+## Updating from beta.1
+
+Close the game and keep a backup of your existing Modern Controller `DINPUT.dll`.
+Replace only that DLL with the beta.2 DLL; retain your `true-analog.ini` and custom
+bindings. To roll back, close the game and restore the backed-up DLL.
 
 ## Uninstallation
 
@@ -92,6 +98,14 @@ Not all PC releases are supported. See [compatibility](docs/COMPATIBILITY.md).
   Binding editing remains mouse/keyboard based; no controller binding editor is added.
 - Combined DirectInput trigger axes retain the original game's limitation.
 - Additional builds/controllers require community evidence and guarded profiles.
+
+## Glyph rendering and focus changes
+
+Beta.2 creates, restores and deletes the glyph renderer's Direct3D 8 state block
+within each submission instead of retaining it across frames. This addressed the
+reported minimize/return failure after a glyph was displayed on the tested setup.
+It is not a guarantee for every display driver, game build or focus-related issue.
+No renderer conversion or graphics wrapper is included.
 
 ## Troubleshooting
 
